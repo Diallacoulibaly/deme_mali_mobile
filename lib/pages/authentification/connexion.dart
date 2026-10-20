@@ -1,8 +1,8 @@
-
 import 'package:flutter/material.dart';
-import '../../../styles/couleurs.dart';
 
 import '../../controllers/connexion_controller.dart';
+import '../../styles/couleurs.dart';
+import '../beneficiaire/accueil_beneficiaire.dart';
 import 'widgets/champ_connexion.dart';
 import 'widgets/bouton_connexion.dart';
 
@@ -16,9 +16,7 @@ class ConnexionPage extends StatefulWidget {
 class _ConnexionPageState extends State<ConnexionPage> {
   final telephoneController = TextEditingController();
   final motDePasseController = TextEditingController();
-
-  final ConnexionController controller =
-  ConnexionController();
+  final ConnexionController controller = ConnexionController();
 
   bool afficherMotDePasse = false;
 
@@ -29,9 +27,7 @@ class _ConnexionPageState extends State<ConnexionPage> {
   }
 
   void _actualiser() {
-    if (mounted) {
-      setState(() {});
-    }
+    if (mounted) setState(() {});
   }
 
   @override
@@ -51,23 +47,35 @@ class _ConnexionPageState extends State<ConnexionPage> {
 
     if (!mounted) return;
 
-    if (succes) {
-      final utilisateur = controller.resultat!.utilisateur;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Bienvenue ${utilisateur.prenom} ${utilisateur.nom}',
-          ),
-        ),
-      );
-
-      // La redirection selon le rôle sera ajoutée ensuite.
-    } else {
+    if (!succes) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             controller.erreur ?? 'Erreur de connexion.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    final utilisateur = controller.resultat!.utilisateur;
+    final role = utilisateur.role.trim().toUpperCase();
+
+    if (role == 'BENEFICIARE') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AccueilBeneficiairePage(
+            prenomBeneficiaire: utilisateur.prenom,
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Connexion réussie. Rôle : $role. '
+                'La page correspondante reste à configurer.',
           ),
         ),
       );
@@ -85,7 +93,6 @@ class _ConnexionPageState extends State<ConnexionPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 25),
-
               Center(
                 child: Image.asset(
                   'assets/images/logo_Acceuil.png',
@@ -94,7 +101,6 @@ class _ConnexionPageState extends State<ConnexionPage> {
                   fit: BoxFit.contain,
                 ),
               ),
-
               const Center(
                 child: Text.rich(
                   TextSpan(
@@ -119,9 +125,7 @@ class _ConnexionPageState extends State<ConnexionPage> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 35),
-
               const Text(
                 'Connexion',
                 style: TextStyle(
@@ -130,9 +134,7 @@ class _ConnexionPageState extends State<ConnexionPage> {
                   color: CouleursApp.noir,
                 ),
               ),
-
               const SizedBox(height: 12),
-
               const Text(
                 'Connectez-vous à votre compte Dèmè Mali.',
                 style: TextStyle(
@@ -140,18 +142,14 @@ class _ConnexionPageState extends State<ConnexionPage> {
                   color: Color(0xFF777777),
                 ),
               ),
-
               const SizedBox(height: 25),
-
               ChampConnexion(
                 titre: 'Téléphone',
                 indication: 'Entrez votre numéro de téléphone',
                 controller: telephoneController,
                 typeClavier: TextInputType.phone,
               ),
-
               const SizedBox(height: 18),
-
               ChampConnexion(
                 titre: 'Mot de passe',
                 indication: 'Entrez votre mot de passe',
@@ -164,13 +162,19 @@ class _ConnexionPageState extends State<ConnexionPage> {
                   });
                 },
               ),
-
               const SizedBox(height: 10),
-
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'La récupération du mot de passe sera ajoutée ensuite.',
+                        ),
+                      ),
+                    );
+                  },
                   child: const Text(
                     'Mot de passe oublié ?',
                     style: TextStyle(
@@ -180,16 +184,12 @@ class _ConnexionPageState extends State<ConnexionPage> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 12),
-
               BoutonConnexion(
                 chargement: controller.chargement,
                 onPressed: _connecter,
               ),
-
               const SizedBox(height: 20),
-
               Center(
                 child: Wrap(
                   alignment: WrapAlignment.center,
@@ -202,9 +202,7 @@ class _ConnexionPageState extends State<ConnexionPage> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
+                      onTap: () => Navigator.pop(context),
                       child: const Text(
                         'S’inscrire',
                         style: TextStyle(
@@ -217,7 +215,6 @@ class _ConnexionPageState extends State<ConnexionPage> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 25),
             ],
           ),

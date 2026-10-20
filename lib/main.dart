@@ -1,11 +1,15 @@
-
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'pages/lancement/ecran_lancement.dart';
 import 'styles/couleurs.dart';
 
 void main() {
-  runApp(const DemeMaliApp());
+  runApp(
+    const ProviderScope(
+      child: DemeMaliApp(),
+    ),
+  );
 }
 
 class DemeMaliApp extends StatelessWidget {
