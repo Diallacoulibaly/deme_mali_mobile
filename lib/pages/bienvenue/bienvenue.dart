@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
 import '../../../styles/couleurs.dart';
 import '../authentification/connexion.dart';
 import 'widgets/contenue_bienvenu.dart';

@@ -24,7 +24,7 @@ class CartesActions extends StatelessWidget {
             child: Padding(padding: const EdgeInsets.all(15), child: Column(
               crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Container(width: 44, height: 44,
-                  decoration: BoxDecoration(color: CouleursApp.vert.withOpacity(.10), borderRadius: BorderRadius.circular(14)),
+                  decoration: BoxDecoration(color: CouleursApp.vert.withValues(alpha: 0.10), borderRadius: BorderRadius.circular(14)),
                   child: Icon(item.$2, color: CouleursApp.vert, size: 24)),
                 const SizedBox(height: 13),
                 Text(item.$1, style: const TextStyle(color: CouleursApp.noir, fontWeight: FontWeight.w700, fontSize: 14)),

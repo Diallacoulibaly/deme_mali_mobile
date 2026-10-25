@@ -38,10 +38,30 @@ class AuthRepository {
 
       final resultat = ReponseConnexion.fromJson(donnees);
 
-      // Enregistrer le token reçu du backend
+      // Enregistrer le token et les infos utiles de l'utilisateur
       await stockage.write(
         key: 'accessToken',
         value: resultat.accessToken,
+      );
+      await stockage.write(
+        key: 'userId',
+        value: resultat.utilisateur.id.toString(),
+      );
+      await stockage.write(
+        key: 'userPrenom',
+        value: resultat.utilisateur.prenom,
+      );
+      await stockage.write(
+        key: 'userNom',
+        value: resultat.utilisateur.nom,
+      );
+      await stockage.write(
+        key: 'userTelephone',
+        value: resultat.utilisateur.telephone,
+      );
+      await stockage.write(
+        key: 'userRole',
+        value: resultat.utilisateur.role,
       );
 
       return resultat;
@@ -57,8 +77,8 @@ class AuthRepository {
     return stockage.read(key: 'accessToken');
   }
 
-  // Déconnexion : supprimer le token
+  // Déconnexion : supprimer les données de session
   Future<void> deconnexion() async {
-    await stockage.delete(key: 'accessToken');
+    await stockage.deleteAll();
   }
 }

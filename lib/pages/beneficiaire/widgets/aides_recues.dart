@@ -11,8 +11,8 @@ class AidesRecues extends StatelessWidget {
       decoration: BoxDecoration(color: CouleursApp.blanc, borderRadius: BorderRadius.circular(16)),
       child: Row(children: [
         Container(width: 46, height: 46,
-          decoration: BoxDecoration(color: CouleursApp.jaune.withOpacity(.18), borderRadius: BorderRadius.circular(14)),
-          child: const Icon(Icons.inventory_2_outlined, color: CouleursApp.vert)),
+          decoration: BoxDecoration(color: CouleursApp.jaune.withValues(alpha: 0.18), borderRadius: BorderRadius.circular(14)),
+          child: const Icon(Icons.card_giftcard_rounded, color: CouleursApp.vert)),
         const SizedBox(width: 12),
         const Expanded(child: Text('Les informations sur les aides distribuées seront affichées ici.',
           style: TextStyle(color: CouleursApp.noir, fontWeight: FontWeight.w600))),

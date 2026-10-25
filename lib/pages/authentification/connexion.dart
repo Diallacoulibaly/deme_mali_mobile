@@ -61,14 +61,15 @@ class _ConnexionPageState extends State<ConnexionPage> {
     final utilisateur = controller.resultat!.utilisateur;
     final role = utilisateur.role.trim().toUpperCase();
 
-    if (role == 'BENEFICIARE') {
-      Navigator.pushReplacement(
+    if (role == 'BENEFICIAIRE' || role == 'BENEFICIARE') {
+      Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
           builder: (context) => AccueilBeneficiairePage(
             prenomBeneficiaire: utilisateur.prenom,
           ),
         ),
+        (route) => false,
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -95,10 +96,22 @@ class _ConnexionPageState extends State<ConnexionPage> {
               const SizedBox(height: 25),
               Center(
                 child: Image.asset(
-                  'assets/images/logo_Acceuil.png',
+                  'assets/images/logo_acceuil.png',
                   width: 140,
                   height: 120,
                   fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => Image.asset(
+                    'assets/images/logo_Acceuil.png',
+                    width: 140,
+                    height: 120,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error2, stackTrace2) => Image.asset(
+                      'assets/images/logo_accueil.png',
+                      width: 140,
+                      height: 120,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
                 ),
               ),
               const Center(

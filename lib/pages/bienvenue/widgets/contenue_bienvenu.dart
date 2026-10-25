@@ -15,10 +15,35 @@ class ContenuBienvenue extends StatelessWidget {
         // LOGO
         Center(
           child: Image.asset(
-            'assets/images/logo_Acceuil.png',
+            'assets/images/logo_acceuil.png',
             width: 115,
             height: 115,
             fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => Image.asset(
+              'assets/images/logo_Acceuil.png',
+              width: 115,
+              height: 115,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error2, stackTrace2) => Image.asset(
+                'assets/images/logo_accueil.png',
+                width: 115,
+                height: 115,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error3, stackTrace3) => Container(
+                  width: 115,
+                  height: 115,
+                  decoration: BoxDecoration(
+                    color: CouleursApp.vert.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.volunteer_activism,
+                    size: 60,
+                    color: CouleursApp.vert,
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
 

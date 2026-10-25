@@ -42,7 +42,7 @@ class CarteDemande extends StatelessWidget {
               Expanded(child: Text(demande.titre, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: CouleursApp.noir))),
               const SizedBox(width: 8),
               Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                decoration: BoxDecoration(color: couleurStatut.withOpacity(.10), borderRadius: BorderRadius.circular(30)),
+                decoration: BoxDecoration(color: couleurStatut.withValues(alpha: 0.10), borderRadius: BorderRadius.circular(30)),
                 child: Text(statutLisible, style: TextStyle(color: couleurStatut, fontSize: 11, fontWeight: FontWeight.w700))),
             ]),
             const SizedBox(height: 8),
