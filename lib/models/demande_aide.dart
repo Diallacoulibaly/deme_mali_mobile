@@ -1,5 +1,6 @@
 class DemandeAide {
   final int id;
+  final int nombreDonateurs;
   final String titre;
   final String descriptionSituation;
   final String niveauUrgence;
@@ -19,22 +20,52 @@ class DemandeAide {
   final String? typeDemandeAide;
 
   const DemandeAide({
-    required this.id, required this.titre, required this.descriptionSituation,
-    required this.niveauUrgence, required this.statut, this.dateCreation,
-    this.motif, this.nombrePersonne, this.montantNecessaire, this.montantCollecte,
-    this.statutCollecte, this.beneficiaireId, this.beneficiaireNom,
-    this.beneficiairePrenom, this.categorieDemandeId, this.categorieDemandeNom,
-    this.typeDemande, this.typeDemandeAide,
+    required this.id,
+    this.nombreDonateurs = 0,
+    required this.titre,
+    required this.descriptionSituation,
+    required this.niveauUrgence,
+    required this.statut,
+    this.dateCreation,
+    this.motif,
+    this.nombrePersonne,
+    this.montantNecessaire,
+    this.montantCollecte,
+    this.statutCollecte,
+    this.beneficiaireId,
+    this.beneficiaireNom,
+    this.beneficiairePrenom,
+    this.categorieDemandeId,
+    this.categorieDemandeNom,
+    this.typeDemande,
+    this.typeDemandeAide,
   });
 
   factory DemandeAide.fromJson(Map<String, dynamic> json) {
-    DateTime? date(dynamic v) => v == null ? null : DateTime.tryParse(v.toString());
-    int? integer(dynamic v) => v == null ? null : (v is num ? v.toInt() : int.tryParse(v.toString()));
-    double? decimal(dynamic v) => v == null ? null : (v is num ? v.toDouble() : double.tryParse(v.toString()));
+    DateTime? date(dynamic value) {
+      return value == null
+          ? null
+          : DateTime.tryParse(value.toString());
+    }
+
+    int? integer(dynamic value) {
+      if (value == null) return null;
+      if (value is num) return value.toInt();
+      return int.tryParse(value.toString());
+    }
+
+    double? decimal(dynamic value) {
+      if (value == null) return null;
+      if (value is num) return value.toDouble();
+      return double.tryParse(value.toString());
+    }
+
     return DemandeAide(
       id: integer(json['id']) ?? 0,
+      nombreDonateurs: integer(json['nombreDonateurs']) ?? 0,
       titre: (json['titre'] ?? '').toString(),
-      descriptionSituation: (json['descriptionSituation'] ?? '').toString(),
+      descriptionSituation:
+      (json['descriptionSituation'] ?? '').toString(),
       niveauUrgence: (json['niveauUrgence'] ?? '').toString(),
       statut: (json['statut'] ?? '').toString(),
       dateCreation: date(json['dateCreation']),
@@ -51,5 +82,15 @@ class DemandeAide {
       typeDemande: json['typeDemande']?.toString(),
       typeDemandeAide: json['typeDemandeAide']?.toString(),
     );
+  }
+
+  bool get estFinanciere {
+    final type = (typeDemandeAide ?? typeDemande ?? '').toUpperCase();
+    return type == 'FINANCIERE';
+  }
+
+  bool get estMaterielle {
+    final type = (typeDemandeAide ?? typeDemande ?? '').toUpperCase();
+    return type == 'MATERIELLE';
   }
 }
