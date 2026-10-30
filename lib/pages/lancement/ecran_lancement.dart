@@ -19,13 +19,14 @@ class _EcranLancementState extends State<EcranLancement>
   String nomAffiche = '';
 
   bool nomVisible = true;
-  bool logoVisible = false;
+  bool logoVisible = true;
 
-  late final AnimationController controleurTaille;
-  late final Animation<double> tailleLogo;
+  late final AnimationController controleurEntree;
+  late final Animation<double> echelleLogo;
 
   late final AnimationController controleurPosition;
   late final Animation<double> positionLogo;
+  late final Animation<double> tailleLogo;
 
   late final AnimationController controleurAccueil;
   late final Animation<double> opaciteAccueil;
@@ -34,26 +35,26 @@ class _EcranLancementState extends State<EcranLancement>
   void initState() {
     super.initState();
 
-    // Animation de la taille du logo.
-    controleurTaille = AnimationController(
+    // 1. Entrée dynamique du logo dès l'ouverture du splash
+    controleurEntree = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 700),
     );
 
-    tailleLogo = Tween<double>(
-      begin: 35,
-      end: 120,
+    echelleLogo = Tween<double>(
+      begin: 0.6,
+      end: 1.0,
     ).animate(
       CurvedAnimation(
-        parent: controleurTaille,
-        curve: Curves.easeOutCubic,
+        parent: controleurEntree,
+        curve: Curves.easeOutBack,
       ),
     );
 
-    // Animation du déplacement du logo.
+    // 2. Déplacement du logo vers le haut (et ajustement de 90px à 76px pour l'accueil)
     controleurPosition = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 900),
     );
 
     positionLogo = CurvedAnimation(
@@ -61,10 +62,20 @@ class _EcranLancementState extends State<EcranLancement>
       curve: Curves.easeInOutCubic,
     );
 
-    // Apparition progressive de la page d'accueil.
+    tailleLogo = Tween<double>(
+      begin: 90.0,
+      end: 76.0,
+    ).animate(
+      CurvedAnimation(
+        parent: controleurPosition,
+        curve: Curves.easeInOutCubic,
+      ),
+    );
+
+    // 3. Apparition progressive de la page d'accueil
     controleurAccueil = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 700),
     );
 
     opaciteAccueil = CurvedAnimation(
@@ -72,11 +83,14 @@ class _EcranLancementState extends State<EcranLancement>
       curve: Curves.easeIn,
     );
 
+    // Démarrer l'animation d'apparition du logo
+    controleurEntree.forward();
+
     lancerAnimation();
   }
 
   Future<void> lancerAnimation() async {
-    // 1. Écriture du nom lettre par lettre.
+    // 1. Écriture du nom lettre par lettre sous le logo
     for (int i = 1; i <= nomApplication.length; i++) {
       if (!mounted) return;
 
@@ -85,7 +99,7 @@ class _EcranLancementState extends State<EcranLancement>
       });
 
       await Future.delayed(
-        const Duration(milliseconds: 130),
+        const Duration(milliseconds: 110),
       );
     }
 
@@ -97,37 +111,21 @@ class _EcranLancementState extends State<EcranLancement>
 
     if (!mounted) return;
 
-    // 2. Faire apparaître le logo.
-    setState(() {
-      logoVisible = true;
-    });
-
-    // 3. Agrandir progressivement le logo.
-    await controleurTaille.forward();
-
-    if (!mounted) return;
-
-    await Future.delayed(
-      const Duration(milliseconds: 300),
-    );
-
-    if (!mounted) return;
-
-    // 4. Faire disparaître le nom.
+    // 2. Faire disparaître le nom
     setState(() {
       nomVisible = false;
     });
 
-    // 5. Faire apparaître l'accueil.
+    // 3. Faire apparaître l'accueil
     controleurAccueil.forward();
 
-    // 6. Déplacer le logo agrandi vers le haut.
+    // 4. Déplacer le logo agrandi vers le haut (vers l'en-tête de l'accueil)
     await controleurPosition.forward();
   }
 
   @override
   void dispose() {
-    controleurTaille.dispose();
+    controleurEntree.dispose();
     controleurPosition.dispose();
     controleurAccueil.dispose();
 
@@ -147,7 +145,7 @@ class _EcranLancementState extends State<EcranLancement>
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Page d'accueil sans deuxième logo.
+          // Page d'accueil sans deuxième logo
           FadeTransition(
             opacity: opaciteAccueil,
             child: const AccueilPage(
@@ -155,7 +153,7 @@ class _EcranLancementState extends State<EcranLancement>
             ),
           ),
 
-          // Nom de l'application.
+          // Nom de l'application
           if (nomVisible)
             Positioned(
               top: tailleEcran.height * 0.43,
@@ -168,15 +166,15 @@ class _EcranLancementState extends State<EcranLancement>
               ),
             ),
 
-          // Un seul logo animé : agrandissement puis déplacement.
+          // Logo animé : immédiatement visible dès le démarrage, avec entrée dynamique puis transition vers l'en-tête
           if (logoVisible)
             AnimatedBuilder(
               animation: Listenable.merge([
-                controleurTaille,
+                controleurEntree,
                 controleurPosition,
               ]),
               builder: (context, child) {
-                final double taille = tailleLogo.value;
+                final double taille = tailleLogo.value * echelleLogo.value;
 
                 final double haut = positionDepart +
                     (positionFinale - positionDepart) *
@@ -192,6 +190,23 @@ class _EcranLancementState extends State<EcranLancement>
                     width: taille,
                     height: taille,
                     fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => Image.asset(
+                      'assets/images/logo_Acceuil.png',
+                      width: taille,
+                      height: taille,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error2, stackTrace2) => Image.asset(
+                        'assets/images/logo_accueil.png',
+                        width: taille,
+                        height: taille,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error3, stackTrace3) => Icon(
+                          Icons.volunteer_activism,
+                          size: taille * 0.7,
+                          color: CouleursApp.vert,
+                        ),
+                      ),
+                    ),
                   ),
                 );
               },

@@ -18,6 +18,10 @@ class LogoAnime extends StatelessWidget {
         'assets/images/logo_acceuil.png',
         fit: BoxFit.contain,
         filterQuality: FilterQuality.high,
+        errorBuilder: (context, error, stackTrace) => Image.asset(
+          'assets/images/logo_accueil.png',
+          fit: BoxFit.contain,
+        ),
       ),
     );
   }

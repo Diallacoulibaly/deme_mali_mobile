@@ -1,73 +1,239 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../controllers/accueil_beneficiaire_controller.dart';
 import '../../styles/couleurs.dart';
-import 'widgets/aides_recues.dart';
-import 'widgets/bienvenue_beneficiaire.dart';
-import 'widgets/bouton_demande_aide.dart';
-import 'widgets/cartes_actions.dart';
-import 'widgets/entete_accueil.dart';
-import 'widgets/liste_demandes.dart';
-import 'widgets/suivi_aides.dart';
+import 'aides_recues/mes_aides_recues_page.dart';
+import 'demande/choix_type_demande_page.dart';
+import 'mes_demandes/mes_demandes_page.dart';
+import 'profil/mon_profil_page.dart';
+import 'suivi/suivre_aides_page.dart';
+import 'widgets/barre_navigation_beneficiaire.dart';
+import 'widgets/entete_beneficiaire.dart';
+import 'widgets/grille_actions.dart';
 
-class AccueilBeneficiairePage extends ConsumerWidget {
-  const AccueilBeneficiairePage({super.key, this.prenomBeneficiaire = '',
-    this.onDemanderAide, this.onMesDemandes, this.onSuiviAides, this.onAidesRecues});
+class AccueilBeneficiairePage extends ConsumerStatefulWidget {
+  const AccueilBeneficiairePage({
+    super.key,
+    this.prenomBeneficiaire = '',
+    this.onDemanderAide,
+    this.onMesDemandes,
+    this.onSuiviAides,
+    this.onAidesRecues,
+  });
+
   final String prenomBeneficiaire;
   final VoidCallback? onDemanderAide, onMesDemandes, onSuiviAides, onAidesRecues;
 
+  @override
+  ConsumerState<AccueilBeneficiairePage> createState() =>
+      _AccueilBeneficiairePageState();
+}
+
+class _AccueilBeneficiairePageState
+    extends ConsumerState<AccueilBeneficiairePage> {
   void _message(BuildContext context, String texte) =>
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(texte)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(texte)));
+
+  void _ouvrirDemandeAide(BuildContext context) {
+    if (widget.onDemanderAide != null) {
+      widget.onDemanderAide!();
+    } else {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const ChoixTypeDemandePage()),
+      );
+    }
+  }
+
+  void _ouvrirMesDemandes(BuildContext context) {
+    if (widget.onMesDemandes != null) {
+      widget.onMesDemandes!();
+    } else {
+      ref.read(ongletActifBeneficiaireProvider.notifier).state = 1;
+    }
+  }
+
+  void _ouvrirSuiviAides(BuildContext context) {
+    if (widget.onSuiviAides != null) {
+      widget.onSuiviAides!();
+    } else {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const SuivreAidesPage()),
+      );
+    }
+  }
+
+  void _ouvrirAidesRecues(BuildContext context) {
+    if (widget.onAidesRecues != null) {
+      widget.onAidesRecues!();
+    } else {
+      ref.read(ongletActifBeneficiaireProvider.notifier).state = 2;
+    }
+  }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final demandesAsync = ref.watch(mesDemandesBeneficiaireProvider);
-    return Scaffold(
-      backgroundColor: CouleursApp.fond,
-      body: SafeArea(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Padding(padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-          child: EnteteAccueil(onNotificationTap: () => _message(context, 'Les notifications seront ajoutées plus tard.'))),
-        Padding(padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
-          child: BienvenueBeneficiaire(prenom: prenomBeneficiaire)),
-        Padding(padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
-          child: BoutonDemandeAide(onPressed: onDemanderAide ??
-            () => _message(context, 'La page de création de demande sera ajoutée ensuite.'))),
-        const Padding(padding: EdgeInsets.fromLTRB(20, 22, 20, 0),
-          child: Text('Que souhaitez-vous faire ?',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: CouleursApp.noir))),
-        const SizedBox(height: 12),
-        Expanded(child: RefreshIndicator(
-          color: CouleursApp.vert,
-          onRefresh: () async {
-            ref.invalidate(mesDemandesBeneficiaireProvider);
-            await ref.read(mesDemandesBeneficiaireProvider.future);
-          },
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              CartesActions(
-                onDemander: onDemanderAide ?? () => _message(context, 'La page de création de demande sera ajoutée ensuite.'),
-                onMesDemandes: onMesDemandes ?? () => _message(context, 'La page Mes demandes sera ajoutée ensuite.'),
-                onSuivi: onSuiviAides ?? () => _message(context, 'La page de suivi sera ajoutée ensuite.'),
-                onAidesRecues: onAidesRecues ?? () => _message(context, 'La page Mes aides reçues sera ajoutée ensuite.'),
-              ),
-              const SizedBox(height: 24),
-              const ListeDemandes(),
-              const SizedBox(height: 24),
-              demandesAsync.when(
-                data: (demandes) => SuiviAides(demandes: demandes),
-                loading: () => const Center(child: Padding(padding: EdgeInsets.all(16),
-                  child: CircularProgressIndicator(color: CouleursApp.vert))),
-                error: (_, __) => const Text('Le suivi sera disponible lorsque les demandes pourront être chargées.'),
-              ),
-              const SizedBox(height: 24),
-              const AidesRecues(),
-            ]),
+  Widget build(BuildContext context) {
+    // 1. Lire l'onglet actif avec Riverpod
+    final selectedIndex = ref.watch(ongletActifBeneficiaireProvider);
+    final prenom = widget.prenomBeneficiaire.isNotEmpty
+        ? widget.prenomBeneficiaire
+        : 'Mariam';
+
+    // 2. Choisir l'écran à afficher selon l'onglet sélectionné
+    Widget corps;
+    if (selectedIndex == 1) {
+      corps = const MesDemandesPage();
+    } else if (selectedIndex == 2) {
+      corps = const MesAidesRecuesPage();
+    } else if (selectedIndex == 3) {
+      corps = const MonProfilPage();
+    } else {
+      corps = _buildCorpsAccueil(context, prenom);
+    }
+
+    return PopScope(
+      canPop: selectedIndex == 0,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (selectedIndex != 0) {
+          ref.read(ongletActifBeneficiaireProvider.notifier).state = 0;
+        }
+      },
+      child: Scaffold(
+        backgroundColor: CouleursApp.fond,
+        body: corps,
+        bottomNavigationBar: const BarreNavigationBeneficiaire(),
+      ),
+    );
+  }
+
+
+  // Contenu principal de l'onglet 0 (Accueil / Home)
+  Widget _buildCorpsAccueil(BuildContext context, String prenom) {
+    return SafeArea(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 1. En-tête : Logo Dèmè Mali + Cloche notification
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+            child: EnteteBeneficiaire(
+              onNotificationTap: () =>
+                  _message(context, 'Aucune nouvelle notification'),
+            ),
           ),
-        )),
-      ])),
-      // CurvedNavigationBar ajoutée dans une étape séparée.
+
+          const SizedBox(height: 20),
+
+          // Contenu défilable
+          Expanded(
+            child: RefreshIndicator(
+              color: CouleursApp.vert,
+              onRefresh: () async {
+                ref.invalidate(mesDemandesBeneficiaireProvider);
+                await ref.read(mesDemandesBeneficiaireProvider.future);
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 2. Message de bienvenue
+                    Text(
+                      'Bonjour $prenom',
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        color: CouleursApp.noir,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Bienvenue dans votre espace bénéficiaire.',
+                      style: TextStyle(
+                        fontSize: 14.5,
+                        color: Colors.black.withValues(alpha: 0.55),
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+
+                    const SizedBox(height: 22),
+
+                    // 3. Bouton principal : "+ Faire une demande d'aide"
+                    _buildBoutonFaireDemande(context),
+
+                    const SizedBox(height: 26),
+
+                    // 4. Titre de section "Que souhaitez-vous faire ?"
+                    const Text(
+                      'Que souhaitez-vous faire ?',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: CouleursApp.noir,
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // 5. Grille 2x2 des 4 cartes d'actions
+                    GrilleActions(
+                      onDemanderAide: () => _ouvrirDemandeAide(context),
+                      onMesDemandes: () => _ouvrirMesDemandes(context),
+                      onSuiviAides: () => _ouvrirSuiviAides(context),
+                      onAidesRecues: () => _ouvrirAidesRecues(context),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Bouton vert principal "+ Faire une demande d'aide"
+  Widget _buildBoutonFaireDemande(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _ouvrirDemandeAide(context),
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          width: double.infinity,
+          height: 62,
+          decoration: BoxDecoration(
+            color: CouleursApp.vert,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: CouleursApp.vert.withValues(alpha: 0.28),
+                blurRadius: 14,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.add, color: CouleursApp.blanc, size: 24),
+              SizedBox(width: 8),
+              Text(
+                'Faire une demande d’aide',
+                style: TextStyle(
+                  color: CouleursApp.blanc,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

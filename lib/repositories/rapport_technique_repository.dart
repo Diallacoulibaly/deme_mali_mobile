@@ -5,9 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/rapport_technique.dart';
+import 'auth_repository.dart';
 
 class RapportTechniqueRepository {
-  static const String baseUrl = 'http://localhost:8080';
+  static const String baseUrl = AuthRepository.baseUrl;
 
   Future<RapportTechnique?> getRapportTechniquePourDemande(
       int demandeId,

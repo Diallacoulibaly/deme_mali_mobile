@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 import '../models/like_organisation.dart';
 import '../models/organisation_partenaire.dart';
+import 'auth_repository.dart';
 
 class LikeOrganisationRepository {
   final String baseUrl;
@@ -107,7 +108,7 @@ class LikeOrganisationRepository {
 /// Provider du repository.
 final likeOrganisationRepositoryProvider =
 Provider<LikeOrganisationRepository>((ref) {
-  const baseUrl = 'http://localhost:8080';
+  const baseUrl = AuthRepository.baseUrl;
 
   final repository = LikeOrganisationRepository(
     baseUrl: baseUrl,

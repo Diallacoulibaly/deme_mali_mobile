@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:convert';
 
@@ -6,11 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/donateur.dart';
-
-// Adapte cette URL à ton environnement.
-// Émulateur Android : http://10.0.2.2:8080
-// Téléphone physique : http://IP_LOCALE_DU_PC:8080
-const String apiBaseUrl = 'http://10.0.2.2:8080';
+import 'auth_repository.dart';
 
 final httpClientProvider = Provider<http.Client>((ref) {
   final client = http.Client();
@@ -20,7 +15,7 @@ final httpClientProvider = Provider<http.Client>((ref) {
 
 final donateurRepositoryProvider = Provider<DonateurRepository>((ref) {
   return DonateurRepository(
-    baseUrl: apiBaseUrl,
+    baseUrl: AuthRepository.baseUrl,
     client: ref.watch(httpClientProvider),
   );
 });
@@ -36,13 +31,16 @@ FutureProvider<List<Donateur>>((ref) {
 });
 
 class DonateurRepository {
-  final String baseUrl;
-  final http.Client client;
+  static const String baseUrl = AuthRepository.baseUrl;
+  final String _instanceBaseUrl;
+  final http.Client? client;
 
   DonateurRepository({
-    required this.baseUrl,
-    required this.client,
-  });
+    String? baseUrl,
+    this.client,
+  }) : _instanceBaseUrl = baseUrl ?? AuthRepository.baseUrl;
+
+  String get effectiveBaseUrl => _instanceBaseUrl;
 
   Future<Donateur> getById(int id) async {
     final response = await _get('/api/donateurs/$id');
@@ -93,6 +91,66 @@ class DonateurRepository {
     return Donateur.fromJson(response as Map<String, dynamic>);
   }
 
+  // Inscription d'un donateur : POST /api/donateurs
+  // Corps attendu (DonateurRequestDTO) : nom, prenom, telephone,
+  // motDePasse, sexe (MASCULIN | FEMININ), paysId.
+  Future<void> inscrire({
+    required String nom,
+    required String prenom,
+    required String telephone,
+    required String motDePasse,
+    required String sexe,
+    required int paysId,
+  }) async {
+    final corpsEnvoi = jsonEncode({
+      'nom': nom.trim(),
+      'prenom': prenom.trim(),
+      'telephone': telephone,
+      'motDePasse': motDePasse,
+      'sexe': sexe,
+      'paysId': paysId,
+    });
+
+    final reponse = await http
+        .post(
+          Uri.parse('$effectiveBaseUrl/api/donateurs'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: corpsEnvoi,
+        )
+        .timeout(
+          const Duration(seconds: 15),
+          onTimeout: () => throw Exception('Délai d’attente dépassé avec le serveur.'),
+        );
+
+    if (reponse.statusCode == 201 || reponse.statusCode == 200) {
+      return;
+    }
+
+    if (reponse.statusCode == 500) {
+      throw Exception('Ce numéro de téléphone est déjà associé à un compte ou les données saisies sont invalides.');
+    }
+
+    try {
+      final corps = jsonDecode(utf8.decode(reponse.bodyBytes));
+      if (corps is Map<String, dynamic>) {
+        if (corps['message'] is String && (corps['message'] as String).isNotEmpty) {
+          throw Exception(corps['message']);
+        }
+        if (corps['error'] is String && (corps['error'] as String).isNotEmpty) {
+          final detail = corps['trace'] ?? corps['message'] ?? corps['error'];
+          throw Exception('${corps['error']} (${reponse.statusCode}) : $detail');
+        }
+      }
+    } on FormatException {
+      // Le corps n'est pas du JSON
+    }
+
+    throw Exception('Erreur HTTP ${reponse.statusCode} : ${reponse.body}');
+  }
+
   Future<dynamic> _get(String path) async {
     return _request('GET', path);
   }
@@ -102,21 +160,22 @@ class DonateurRepository {
       String path, {
         Map<String, dynamic>? body,
       }) async {
-    final url = Uri.parse('$baseUrl$path');
+    final url = Uri.parse('$effectiveBaseUrl$path');
+    final cl = client ?? http.Client();
 
     try {
       late http.Response response;
 
       switch (method) {
         case 'GET':
-          response = await client.get(
+          response = await cl.get(
             url,
             headers: {'Accept': 'application/json'},
           ).timeout(const Duration(seconds: 15));
           break;
 
         case 'POST':
-          response = await client.post(
+          response = await cl.post(
             url,
             headers: {
               'Accept': 'application/json',
@@ -127,7 +186,7 @@ class DonateurRepository {
           break;
 
         case 'PATCH':
-          response = await client.patch(
+          response = await cl.patch(
             url,
             headers: {'Accept': 'application/json'},
           ).timeout(const Duration(seconds: 15));

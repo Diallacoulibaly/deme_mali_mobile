@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/badge_donateur_model.dart';
+import 'auth_repository.dart';
 
 class BadgeRepository {
   final http.Client client;
@@ -124,6 +125,6 @@ final badgeRepositoryProvider = Provider<BadgeRepository>((ref) {
 
   return BadgeRepository(
     client: client,
-    baseUrl: 'http://localhost:8080',
+    baseUrl: AuthRepository.baseUrl,
   );
 });
