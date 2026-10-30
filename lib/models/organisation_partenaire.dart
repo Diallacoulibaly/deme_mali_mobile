@@ -1,4 +1,3 @@
-
 class OrganisationPartenaire {
   final int id;
   final String? nom;
@@ -26,7 +25,7 @@ class OrganisationPartenaire {
     this.prenom,
     this.telephone,
     this.role,
-   required this.nomOrganisation,
+    required this.nomOrganisation,
     required this.typeOrganisation,
     this.nif,
     this.adresse,
@@ -41,30 +40,43 @@ class OrganisationPartenaire {
     this.aimeParMoi = false,
   });
 
-  factory OrganisationPartenaire.fromJson(
-      Map<String, dynamic> json,
-      ) {
+  String get type => typeOrganisation;
+  String? get description => null;
+
+  String get typeLibelle {
+    switch (typeOrganisation.toUpperCase()) {
+      case 'ONG':
+        return 'ONG';
+      case 'ASSOCIATION':
+        return 'Association';
+      case 'FONDATION':
+        return 'Fondation';
+      default:
+        return typeOrganisation.isEmpty
+            ? ''
+            : typeOrganisation[0] + typeOrganisation.substring(1).toLowerCase();
+    }
+  }
+
+  factory OrganisationPartenaire.fromJson(Map<String, dynamic> json) {
     return OrganisationPartenaire(
       id: (json['id'] as num?)?.toInt() ?? 0,
       nom: json['nom'] as String?,
       prenom: json['prenom'] as String?,
       telephone: json['telephone'] as String?,
       role: json['role']?.toString(),
-      nomOrganisation: json['nomOrganisation'] as String,
-      typeOrganisation: json['typeOrganisation'] as String,
+      nomOrganisation: (json['nomOrganisation'] ?? json['nom'] ?? '').toString(),
+      typeOrganisation: (json['typeOrganisation'] ?? json['type'] ?? '').toString(),
       nif: json['nif'] as String?,
       adresse: json['adresse'] as String?,
-      ville: json['ville'] as String,
-      documentJustificatif:
-      json['documentJustificatif'] as String?,
+      ville: (json['ville'] ?? '').toString(),
+      documentJustificatif: json['documentJustificatif'] as String?,
       dateInscription: json['dateInscription']?.toString(),
       statutValidation: json['statutValidation']?.toString(),
       dateValidation: json['dateValidation']?.toString(),
       email: json['email'] as String?,
-      telephoneOrganisation:
-      json['telephoneOrganisation'] as String?,
-      nombreLikes:
-      (json['nombreLikes'] as num?)?.toInt() ?? 0,
+      telephoneOrganisation: json['telephoneOrganisation'] as String?,
+      nombreLikes: (json['nombreLikes'] as num?)?.toInt() ?? 0,
       aimeParMoi: json['aimeParMoi'] as bool? ?? false,
     );
   }

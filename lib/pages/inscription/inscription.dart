@@ -1,7 +1,8 @@
-
 import 'package:flutter/material.dart';
 import '../../../styles/couleurs.dart';
 
+import 'particulier/choix_organisation.dart';
+import 'selection_pays.dart';
 import 'widgets/choix_type_compte.dart';
 import 'widgets/bouton_continuer.dart';
 
@@ -113,14 +114,46 @@ class _InscriptionPageState extends State<InscriptionPage> {
               child: BoutonContinuer(
                 actif: typeSelectionne.isNotEmpty,
                 onPressed: () {
-                  // Le formulaire correspondant sera ouvert ici.
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Type choisi : $typeSelectionne',
+                  // Donateur : pays puis informations personnelles
+                  if (typeSelectionne == 'DONATEUR') {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => SelectionPaysPage(
+                          typeCompte: typeSelectionne,
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                    return;
+                  }
+
+                  // Particulier : organisation, informations personnelles puis
+                  // informations bénéficiaire
+                  if (typeSelectionne == 'PARTICULIER') {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ChoixOrganisationPage(
+                          typeCompte: 'PARTICULIER',
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+
+                  // Structure : organisation, informations de la structure (1/3, 2/3)
+                  // puis création du compte (3/3)
+                  if (typeSelectionne == 'STRUCTURE') {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ChoixOrganisationPage(
+                          typeCompte: 'STRUCTURE',
+                        ),
+                      ),
+                    );
+                    return;
+                  }
                 },
               ),
             ),
