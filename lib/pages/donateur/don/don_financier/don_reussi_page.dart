@@ -1,15 +1,20 @@
 
 import 'package:flutter/material.dart';
-import '/styles/couleurs.dart';
 
+import '/styles/couleurs.dart';
+import 'package:deme_mali_mobile/pages/donateur/accueil_donateur.dart';
 class DonReussiPage extends StatelessWidget {
   final double montant;
   final String modePaiement;
+  final String prenom;
+  final int donateurId;
 
   const DonReussiPage({
     super.key,
     required this.montant,
     required this.modePaiement,
+    required this.prenom,
+    required this.donateurId,
   });
 
   String get montantFormate {
@@ -123,7 +128,9 @@ class DonReussiPage extends StatelessWidget {
                           color: CouleursApp.vert,
                           size: 22,
                         ),
+
                         const SizedBox(width: 12),
+
                         const Expanded(
                           child: Text(
                             'Mode de paiement',
@@ -133,6 +140,7 @@ class DonReussiPage extends StatelessWidget {
                             ),
                           ),
                         ),
+
                         Flexible(
                           child: Text(
                             modePaiement,
@@ -148,34 +156,6 @@ class DonReussiPage extends StatelessWidget {
                     ),
 
                     const SizedBox(height: 16),
-
-                    const Row(
-                      children: [
-                        Icon(
-                          Icons.verified_outlined,
-                          color: CouleursApp.vert,
-                          size: 22,
-                        ),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Statut',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: CouleursApp.noir,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          'Confirmé',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: CouleursApp.vert,
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),
@@ -188,8 +168,14 @@ class DonReussiPage extends StatelessWidget {
                 height: 52,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).popUntil(
-                          (route) => route.isFirst,
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (context) => AccueilDonateurPage(
+                          prenom: prenom,
+                          donateurId: donateurId,
+                        ),
+                      ),
+                          (route) => false,
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -211,9 +197,6 @@ class DonReussiPage extends StatelessWidget {
               ),
 
               const SizedBox(height: 12),
-
-              // Petit message de remerciement
-
             ],
           ),
         ),

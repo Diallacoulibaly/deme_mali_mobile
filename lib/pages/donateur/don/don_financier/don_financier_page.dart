@@ -8,14 +8,14 @@ class DonFinancierPage extends StatefulWidget {
   final int donateurId;
   final int? demandeAideId;
   final int? organisationPartenaireId;
-
+  final String prenom;
 
   const DonFinancierPage({
     super.key,
     required this.donateurId,
     this.demandeAideId,
-    this.organisationPartenaireId
-
+    this.organisationPartenaireId,
+    required this.prenom,
   });
 
   @override
@@ -69,8 +69,9 @@ class _DonFinancierPageState extends State<DonFinancierPage> {
           anonyme: _anonyme,
           donateurId: widget.donateurId,
           demandeAideId: widget.demandeAideId,
-            organisationPartenaireId:widget.organisationPartenaireId
-
+          organisationPartenaireId:
+          widget.organisationPartenaireId,
+          prenom: widget.prenom,
         ),
       ),
     );
@@ -85,23 +86,32 @@ class _DonFinancierPageState extends State<DonFinancierPage> {
           builder: (context, contraintes) {
             final largeur = contraintes.maxWidth;
             final petitEcran = contraintes.maxHeight < 700;
+            final tresPetitEcran = largeur < 360;
 
             return SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(
-                largeur < 360 ? 14 : 20,
+                tresPetitEcran ? 12 : 20,
                 petitEcran ? 6 : 12,
-                largeur < 360 ? 14 : 20,
+                tresPetitEcran ? 12 : 20,
                 16,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // En-tête
-                  Row(
-                    children: [
-                      IconButton(
+                  // En-tête sans Row pour éviter le débordement
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: IconButton(
                         onPressed: () => Navigator.pop(context),
                         icon: const Icon(Icons.arrow_back),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 40,
+                          minHeight: 40,
+                        ),
                         style: IconButton.styleFrom(
                           backgroundColor: CouleursApp.blanc,
                           foregroundColor: CouleursApp.noir,
@@ -112,19 +122,20 @@ class _DonFinancierPageState extends State<DonFinancierPage> {
                           ),
                         ),
                       ),
-                      const Expanded(
-                        child: Text(
-                          'Faire un don',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: CouleursApp.noir,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 48),
-                    ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  const Text(
+                    'Faire un don',
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    style: TextStyle(
+                      color: CouleursApp.noir,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
 
                   SizedBox(height: petitEcran ? 12 : 20),
@@ -189,9 +200,9 @@ class _DonFinancierPageState extends State<DonFinancierPage> {
                     gridDelegate:
                     SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 3,
-                      crossAxisSpacing: largeur < 360 ? 8 : 12,
+                      crossAxisSpacing: tresPetitEcran ? 7 : 12,
                       mainAxisSpacing: 10,
-                      childAspectRatio: 1.8,
+                      childAspectRatio: tresPetitEcran ? 1.55 : 1.8,
                     ),
                     itemBuilder: (context, index) {
                       final montant = _montants[index];

@@ -37,6 +37,7 @@ class EnteteListeDemandes extends StatefulWidget {
 
 class _EnteteListeDemandesState
     extends State<EnteteListeDemandes> {
+
   final TextEditingController _rechercheController =
   TextEditingController();
 
@@ -51,6 +52,7 @@ class _EnteteListeDemandesState
     super.dispose();
   }
 
+  // FILTRES HORIZONTAUX
   Widget _construireFiltres({
     required List<String> valeurs,
     required String selection,
@@ -61,8 +63,9 @@ class _EnteteListeDemandesState
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.zero,
+        physics: const BouncingScrollPhysics(),
         itemCount: valeurs.length,
-        separatorBuilder: (_, _) =>
+        separatorBuilder: (_, __) =>
         const SizedBox(width: 6),
         itemBuilder: (context, index) {
           final valeur = valeurs[index];
@@ -107,6 +110,7 @@ class _EnteteListeDemandesState
     );
   }
 
+  // BOUTONS RONDS
   Widget _construireBoutonRond({
     required IconData icone,
     VoidCallback? onTap,
@@ -130,15 +134,71 @@ class _EnteteListeDemandesState
     );
   }
 
+  // BARRE DE RECHERCHE
+  Widget _construireRecherche() {
+    return Container(
+      height: 44,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: const Color(0xFFEAE6DF),
+        ),
+      ),
+      child: TextField(
+        controller: _rechercheController,
+        textInputAction: TextInputAction.search,
+        onChanged: (valeur) {
+          widget.onRechercheChanged(valeur);
+
+          // Actualise l'affichage de l'icône d'effacement.
+          setState(() {});
+        },
+        decoration: InputDecoration(
+          isDense: true,
+          hintText: 'Rechercher une demande...',
+          hintStyle: const TextStyle(
+            fontSize: 12,
+            color: Color(0xFF888888),
+          ),
+          prefixIcon: const Icon(
+            Icons.search_rounded,
+            size: 20,
+            color: gris,
+          ),
+          suffixIcon: _rechercheController.text.isNotEmpty
+              ? IconButton(
+            onPressed: () {
+              _rechercheController.clear();
+              widget.onRechercheChanged('');
+              setState(() {});
+            },
+            icon: const Icon(
+              Icons.close_rounded,
+              size: 18,
+            ),
+          )
+              : null,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 12,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       color: beige,
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+
           // EN-TÊTE
           Row(
             children: [
@@ -147,6 +207,7 @@ class _EnteteListeDemandesState
                 onTap: widget.onRetour ??
                         () => Navigator.of(context).maybePop(),
               ),
+
               const Expanded(
                 child: Center(
                   child: Text(
@@ -159,6 +220,7 @@ class _EnteteListeDemandesState
                   ),
                 ),
               ),
+
               _construireBoutonRond(
                 icone: Icons.notifications_none_rounded,
                 onTap: widget.onNotifications,
@@ -180,70 +242,31 @@ class _EnteteListeDemandesState
           const SizedBox(height: 12),
 
           // RECHERCHE
-          Container(
-            height: 42,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: const Color(0xFFEAE6DF),
-              ),
-            ),
-            child: TextField(
-              controller: _rechercheController,
-              onChanged: widget.onRechercheChanged,
-              decoration: InputDecoration(
-                hintText: 'Rechercher une demande...',
-                hintStyle: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF888888),
-                ),
-                prefixIcon: const Icon(
-                  Icons.search_rounded,
-                  size: 20,
-                  color: gris,
-                ),
-                suffixIcon:
-                _rechercheController.text.isNotEmpty
-                    ? IconButton(
-                  onPressed: () {
-                    _rechercheController.clear();
-                    widget.onRechercheChanged('');
-                    setState(() {});
-                  },
-                  icon: const Icon(
-                    Icons.close_rounded,
-                    size: 18,
-                  ),
-                )
-                    : null,
-                border: InputBorder.none,
-                contentPadding:
-                const EdgeInsets.symmetric(vertical: 11),
-              ),
-            ),
-          ),
+          _construireRecherche(),
 
           const SizedBox(height: 14),
 
-          // LES DEUX FILTRES SUR LA MÊME LIGNE
+          // FILTRES
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // FILTRE URGENCE
+
+              // URGENCE
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "Urgence",
+                      'Urgence',
                       style: TextStyle(
                         color: fonce,
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
+
                     const SizedBox(height: 7),
+
                     _construireFiltres(
                       valeurs: widget.niveauxUrgence,
                       selection: widget.urgenceSelectionnee,
@@ -255,7 +278,7 @@ class _EnteteListeDemandesState
 
               const SizedBox(width: 12),
 
-              // FILTRE CATÉGORIE
+              // CATÉGORIE
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -268,7 +291,9 @@ class _EnteteListeDemandesState
                         fontWeight: FontWeight.w700,
                       ),
                     ),
+
                     const SizedBox(height: 7),
+
                     _construireFiltres(
                       valeurs: widget.categories,
                       selection: widget.categorieSelectionnee,

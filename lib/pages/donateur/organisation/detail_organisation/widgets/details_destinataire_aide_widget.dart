@@ -15,8 +15,6 @@ class DetailsDestinataireAideWidget extends ConsumerWidget {
   });
 
   final AideDistribuee aide;
-
-  /// Widget existant affichant la photo ou la vidéo de preuve.
   final Widget? preuve;
 
   @override
@@ -30,58 +28,54 @@ class DetailsDestinataireAideWidget extends ConsumerWidget {
       return demandeAsync.when(
         loading: () => const _ChargementInformation(),
         error: (error, stackTrace) => const _MessageInformation(
-          message:
-          'Impossible de charger les informations de la demande.',
+          message: 'Impossible de charger les informations de la demande.',
         ),
         data: (demande) {
           final estMaterielle = demande.estMaterielle;
           final type = estMaterielle ? 'Matérielle' : 'Financière';
 
           return _carte(
-            contenu: Column(
+            contenu: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _icone(
-                      estMaterielle
-                          ? Icons.inventory_2_outlined
-                          : Icons.volunteer_activism_outlined,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Demande associée',
-                            style: TextStyle(
-                              color: Colors.black54,
-                              fontSize: 13,
-                            ),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            demande.titre.isNotEmpty
-                                ? demande.titre
-                                : 'Demande sans titre',
-                            style: const TextStyle(
-                              color: CouleursApp.noir,
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                              height: 1.3,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          _BadgeTypeAide(
-                            type: type,
-                            estMaterielle: estMaterielle,
-                          ),
-                        ],
+                _icone(
+                  estMaterielle
+                      ? Icons.inventory_2_outlined
+                      : Icons.volunteer_activism_outlined,
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'DEMANDE ASSOCIÉE',
+                        style: TextStyle(
+                          color: CouleursApp.noir.withValues(alpha: 0.55),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.1,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 6),
+                      Text(
+                        demande.titre.isNotEmpty
+                            ? demande.titre
+                            : 'Demande sans titre',
+                        style: const TextStyle(
+                          color: CouleursApp.noir,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          height: 1.35,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _BadgeTypeAide(
+                        type: type,
+                        estMaterielle: estMaterielle,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -107,41 +101,32 @@ class DetailsDestinataireAideWidget extends ConsumerWidget {
 
           return _carte(
             contenu: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: CouleursApp.vert.withValues(alpha: 0.10),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.person_outline,
-                    color: CouleursApp.vert,
-                    size: 30,
-                  ),
-                ),
+                _icone(Icons.person_outline_rounded),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Bénéficiaire',
+                      Text(
+                        'BÉNÉFICIAIRE',
                         style: TextStyle(
-                          color: Colors.black54,
-                          fontSize: 13,
+                          color: CouleursApp.noir.withValues(alpha: 0.55),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.1,
                         ),
                       ),
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 6),
                       Text(
                         nomComplet.isNotEmpty
                             ? nomComplet
                             : 'Nom non renseigné',
                         style: const TextStyle(
                           color: CouleursApp.noir,
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],
@@ -155,8 +140,7 @@ class DetailsDestinataireAideWidget extends ConsumerWidget {
     }
 
     return const _MessageInformation(
-      message:
-      'Aucune demande ni aucun bénéficiaire associé à cette aide.',
+      message: 'Aucune demande ni aucun bénéficiaire associé à cette aide.',
     );
   }
 
@@ -166,23 +150,16 @@ class DetailsDestinataireAideWidget extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: CouleursApp.blanc,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: CouleursApp.vert.withValues(alpha: 0.08),
+          color: CouleursApp.noir.withValues(alpha: 0.06),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: CouleursApp.noir.withValues(alpha: 0.06),
-            blurRadius: 14,
-            offset: const Offset(0, 5),
-          ),
-        ],
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Preuve en haut de la card.
+          // Preuve en haut de la carte, si elle est fournie.
           if (preuve != null)
             SizedBox(
               width: double.infinity,
@@ -192,7 +169,7 @@ class DetailsDestinataireAideWidget extends ConsumerWidget {
 
           // Informations en dessous.
           Padding(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(16),
             child: contenu,
           ),
         ],
@@ -202,10 +179,10 @@ class DetailsDestinataireAideWidget extends ConsumerWidget {
 
   Widget _icone(IconData icone) {
     return Container(
-      width: 48,
-      height: 48,
+      width: 50,
+      height: 50,
       decoration: BoxDecoration(
-        color: CouleursApp.vert.withValues(alpha: 0.10),
+        color: CouleursApp.vert.withValues(alpha: 0.09),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Icon(
@@ -238,12 +215,12 @@ class _BadgeTypeAide extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: 13,
-        vertical: 8,
+        horizontal: 11,
+        vertical: 7,
       ),
       decoration: BoxDecoration(
-        color: couleur.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(24),
+        color: couleur.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -251,13 +228,13 @@ class _BadgeTypeAide extends StatelessWidget {
           Icon(
             estMaterielle
                 ? Icons.inventory_2_outlined
-                : Icons.payments_outlined,
-            size: 17,
+                : Icons.account_balance_wallet_outlined,
+            size: 15,
             color: couleurTexte,
           ),
           const SizedBox(width: 7),
           Text(
-            type,
+            'Aide $type',
             style: TextStyle(
               color: couleurTexte,
               fontSize: 12,
@@ -292,10 +269,13 @@ class _ChargementInformation extends StatelessWidget {
               color: CouleursApp.vert,
             ),
           ),
-          SizedBox(width: 10),
+          SizedBox(width: 12),
           Text(
-            'Chargement...',
-            style: TextStyle(color: CouleursApp.noir),
+            'Chargement des informations...',
+            style: TextStyle(
+              color: CouleursApp.noir,
+              fontSize: 13,
+            ),
           ),
         ],
       ),
@@ -317,13 +297,17 @@ class _MessageInformation extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: CouleursApp.blanc,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: CouleursApp.noir.withValues(alpha: 0.06),
+        ),
       ),
       child: Text(
         message,
-        style: const TextStyle(
-          color: CouleursApp.noir,
+        style: TextStyle(
+          color: CouleursApp.noir.withValues(alpha: 0.70),
           fontSize: 13,
+          height: 1.5,
         ),
       ),
     );

@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 import '../../../styles/couleurs.dart';
@@ -5,10 +6,12 @@ import '../don/faire_un_don_page.dart';
 
 class BanniereDonGeneral extends StatelessWidget {
   final int donateurId;
+  final String prenom;
 
   const BanniereDonGeneral({
     super.key,
     required this.donateurId,
+    required this.prenom,
   });
 
   @override
@@ -24,6 +27,7 @@ class BanniereDonGeneral extends StatelessWidget {
               MaterialPageRoute(
                 builder: (context) => FaireUnDonPage(
                   donateurId: donateurId,
+                  prenom: prenom,
                 ),
               ),
             );

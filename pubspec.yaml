@@ -66,6 +66,9 @@ flutter:
   assets:
     - assets/images/logo_Acceuil.png
     - assets/images/accueil.png
+    - assets/images/orange_money.png
+    - assets/images/wave.png
+    - assets/images/moov_money.png
 
 
   # To add assets to your application, add an assets section, like this:

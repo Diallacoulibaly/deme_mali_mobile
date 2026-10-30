@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,10 +14,17 @@ import '../don/faire_un_don_page.dart';
 
 class OrganisationPage extends ConsumerStatefulWidget {
   final int donateurId;
-  const OrganisationPage({super.key, required this.donateurId});
+  final String prenom;
+
+  const OrganisationPage({
+    super.key,
+    required this.donateurId,
+    required this.prenom,
+  });
 
   @override
-  ConsumerState<OrganisationPage> createState() => _OrganisationPageState();
+  ConsumerState<OrganisationPage> createState() =>
+      _OrganisationPageState();
 }
 
 class _OrganisationPageState extends ConsumerState<OrganisationPage> {
@@ -34,7 +42,9 @@ class _OrganisationPageState extends ConsumerState<OrganisationPage> {
       final organisations = await ref.read(
         organisationsAimeesProvider(widget.donateurId).future,
       );
+
       if (!mounted) return;
+
       setState(() {
         organisationsAimees
           ..clear()
@@ -45,9 +55,12 @@ class _OrganisationPageState extends ConsumerState<OrganisationPage> {
     }
   }
 
-  Future<void> _changerLike(OrganisationPartenaire organisation) async {
+  Future<void> _changerLike(
+      OrganisationPartenaire organisation,
+      ) async {
     final idOrganisation = organisation.id;
     final dejaAimee = organisationsAimees.contains(idOrganisation);
+
     final like = LikeOrganisation(
       donateurId: widget.donateurId,
       organisationId: idOrganisation,
@@ -55,12 +68,15 @@ class _OrganisationPageState extends ConsumerState<OrganisationPage> {
 
     try {
       final repository = ref.read(likeOrganisationRepositoryProvider);
+
       if (dejaAimee) {
         await repository.retirerLike(like);
       } else {
         await repository.aimerOrganisation(like);
       }
+
       if (!mounted) return;
+
       setState(() {
         if (dejaAimee) {
           organisationsAimees.remove(idOrganisation);
@@ -68,20 +84,25 @@ class _OrganisationPageState extends ConsumerState<OrganisationPage> {
           organisationsAimees.add(idOrganisation);
         }
       });
+
       ref.invalidate(organisationsAimeesProvider(widget.donateurId));
       ref.invalidate(organisationsAvecLikesProvider(widget.donateurId));
     } catch (_) {
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Impossible de modifier le favori. Réessaie.')),
+        const SnackBar(
+          content: Text('Impossible de modifier le favori. Réessaie.'),
+        ),
       );
     }
   }
 
   List<OrganisationPartenaire> _rechercherOrganisations(
-    List<OrganisationPartenaire> organisations,
-  ) {
+      List<OrganisationPartenaire> organisations,
+      ) {
     final terme = recherche.trim().toLowerCase();
+
     if (terme.isEmpty) return organisations;
 
     return organisations.where((organisation) {
@@ -99,6 +120,7 @@ class _OrganisationPageState extends ConsumerState<OrganisationPage> {
 
     return Scaffold(
       backgroundColor: CouleursApp.fond,
+
       appBar: AppBar(
         backgroundColor: CouleursApp.fond,
         foregroundColor: CouleursApp.noir,
@@ -108,18 +130,26 @@ class _OrganisationPageState extends ConsumerState<OrganisationPage> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
+
       body: SafeArea(
         child: organisationsAsync.when(
           loading: () => const Center(
-            child: CircularProgressIndicator(color: CouleursApp.vert),
+            child: CircularProgressIndicator(
+              color: CouleursApp.vert,
+            ),
           ),
+
           error: (error, stackTrace) => Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.wifi_off_outlined, size: 44, color: Colors.grey),
+                  const Icon(
+                    Icons.wifi_off_outlined,
+                    size: 44,
+                    color: Colors.grey,
+                  ),
                   const SizedBox(height: 12),
                   const Text(
                     'Impossible de charger les organisations.',
@@ -141,27 +171,43 @@ class _OrganisationPageState extends ConsumerState<OrganisationPage> {
               ),
             ),
           ),
+
           data: (organisations) {
-            final organisationsFiltrees = _rechercherOrganisations(organisations);
+            final organisationsFiltrees =
+            _rechercherOrganisations(organisations);
+
             return RefreshIndicator(
               color: CouleursApp.vert,
               onRefresh: () async {
-                ref.invalidate(organisationsAvecLikesProvider(widget.donateurId));
+                ref.invalidate(
+                  organisationsAvecLikesProvider(widget.donateurId),
+                );
                 await _chargerOrganisationsAimees();
               },
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
                 children: [
                   const SizedBox(height: 8),
+
                   const Text(
-                    'Découvrez la liste des orgnisations partenaires.',
-                    style: TextStyle(fontSize: 14, color: CouleursApp.noir, height: 1.5),
+                    'Découvrez la liste des organisations partenaires.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: CouleursApp.noir,
+                      height: 1.5,
+                    ),
                   ),
+
                   const SizedBox(height: 20),
+
                   BarreRechercheOrganisation(
-                    onRechercheChangee: (valeur) => setState(() => recherche = valeur),
+                    onRechercheChangee: (valeur) {
+                      setState(() => recherche = valeur);
+                    },
                   ),
+
                   const SizedBox(height: 22),
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -175,23 +221,30 @@ class _OrganisationPageState extends ConsumerState<OrganisationPage> {
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 14),
+
                   ListeOrganisations(
                     organisations: organisationsFiltrees,
+
                     estAimee: (organisation) =>
                         organisationsAimees.contains(organisation.id),
-                    onLike: _changerLike,onVoirOrganisation: (organisation) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => DetailOrganisationPage(
-                          organisation: organisation,
-                          donateurId: widget.donateurId,
 
+                    onLike: _changerLike,
+
+                    onVoirOrganisation: (organisation) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DetailOrganisationPage(
+                            organisation: organisation,
+                            donateurId: widget.donateurId,
+                            prenom: widget.prenom,
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+
                     onSoutenir: (organisation) {
                       Navigator.push(
                         context,
@@ -199,6 +252,7 @@ class _OrganisationPageState extends ConsumerState<OrganisationPage> {
                           builder: (context) => FaireUnDonPage(
                             donateurId: widget.donateurId,
                             organisationPartenaireId: organisation.id,
+                            prenom: widget.prenom,
                           ),
                         ),
                       );

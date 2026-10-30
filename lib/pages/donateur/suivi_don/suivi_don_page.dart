@@ -49,10 +49,16 @@ class SuiviDonPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: CouleursApp.fond,
       appBar: AppBar(
-        title: const Text('Suivi de mon don'),
-        backgroundColor: CouleursApp.vert,
-        foregroundColor: CouleursApp.blanc,
+        title: const Text('Suivi de mon don',
+
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),),
+        backgroundColor: CouleursApp.fond,
+        foregroundColor: CouleursApp.noir,
         elevation: 0,
+
       ),
       body: RefreshIndicator(
         color: CouleursApp.vert,

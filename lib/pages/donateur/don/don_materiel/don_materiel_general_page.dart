@@ -1,21 +1,25 @@
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '/controllers/don_materiel_controller.dart';
 import '/models/don_materiel.dart';
 import '/styles/couleurs.dart';
+import 'package:deme_mali_mobile/pages/donateur/accueil_donateur.dart';
 
 class DonMaterielGeneralPage extends ConsumerStatefulWidget {
   final int donateurId;
+  final String prenom;
   final int? demandeAideId;
   final int? organisationPartenaireId;
-
 
   const DonMaterielGeneralPage({
     super.key,
     required this.donateurId,
+    required this.prenom,
     this.demandeAideId,
-    this.organisationPartenaireId
+    this.organisationPartenaireId,
   });
 
   @override
@@ -91,16 +95,15 @@ class _DonMaterielGeneralPageState
         ),
       );
 
-      _formKey.currentState!.reset();
-      _designationController.clear();
-      _quantiteController.clear();
-      _adresseController.clear();
-
-      setState(() {
-        _unite = 'Sac';
-        _etatMateriel = 'NEUF';
-        _anonyme = false;
-      });
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => AccueilDonateurPage(
+            prenom: widget.prenom,
+            donateurId: widget.donateurId,
+          ),
+        ),
+            (route) => false,
+      );
     } catch (e) {
       if (!mounted) return;
 
@@ -121,249 +124,299 @@ class _DonMaterielGeneralPageState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: CouleursApp.fond,
-      appBar: AppBar(
-        backgroundColor: CouleursApp.fond,
-        foregroundColor: CouleursApp.vert,
-        elevation: 0,
-        title: const Text(
-          'Don matériel général',
-          style: TextStyle(
-            color: CouleursApp.noir,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 28),
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: CouleursApp.vert,
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(
-                        Icons.volunteer_activism_outlined,
-                        color: CouleursApp.jaune,
-                        size: 36,
+                // En-tête
+                Row(
+                  children: [
+                    Material(
+                      color: CouleursApp.blanc,
+                      borderRadius: BorderRadius.circular(12),
+                      child: IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(
+                          Icons.arrow_back_rounded,
+                          color: CouleursApp.noir,
+                          size: 21,
+                        ),
+                        tooltip: 'Retour',
                       ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Votre don peut faire la différence',
+                    ),
+                    const SizedBox(width: 14),
+                    const Expanded(
+                      child: Text(
+                        'Faire un don matériel',
                         style: TextStyle(
-                          color: CouleursApp.blanc,
+                          color: CouleursApp.noir,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Proposez du matériel pour soutenir les '
-                            'personnes qui en ont besoin.',
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                // Formulaire
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: CouleursApp.blanc,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: CouleursApp.noir.withValues(alpha: 0.06),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.035),
+                        blurRadius: 14,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Text(
+                        'Informations du don',
                         style: TextStyle(
-                          color: CouleursApp.blanc.withValues(alpha: 0.9),
+                          color: CouleursApp.noir,
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 5),
+
+                      Text(
+                        'Les champs ci-dessous permettent de décrire '
+                            'votre contribution.',
+                        style: TextStyle(
+                          color: CouleursApp.noir.withValues(alpha: 0.55),
+                          fontSize: 12,
                           height: 1.5,
+                        ),
+                      ),
+
+                      const SizedBox(height: 22),
+
+                      // Désignation
+                      _label('Désignation du matériel'),
+
+                      TextFormField(
+                        controller: _designationController,
+                        textCapitalization: TextCapitalization.sentences,
+                        decoration: _decoration(
+                          'Ex. : Sacs de riz, vêtements...',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Veuillez saisir le matériel à donner.';
+                          }
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 19),
+
+                      // Quantité
+                      _label('Quantité'),
+
+                      TextFormField(
+                        controller: _quantiteController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: _decoration('Saisir la quantité'),
+                        validator: (value) {
+                          final quantite =
+                          int.tryParse(value?.trim() ?? '');
+
+                          if (quantite == null || quantite <= 0) {
+                            return 'Saisissez une quantité entière supérieure à 0.';
+                          }
+
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 19),
+
+                      // Unité
+                      _label('Unité'),
+
+                      DropdownButtonFormField<String>(
+                        initialValue: null,
+                        isExpanded: true,
+                        hint: const Text('Choisir une unité'),
+                        dropdownColor: CouleursApp.blanc,
+                        decoration: _decoration(''),
+                        icon: const SizedBox.shrink(),
+                        items: _unites.map((unite) {
+                          return DropdownMenuItem<String>(
+                            value: unite,
+                            child: Text(unite),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() => _unite = value);
+                          }
+                        },
+                      ),
+
+                      const SizedBox(height: 19),
+
+                      // État du matériel (facultatif)
+                      _label('État du matériel'),
+
+                      DropdownButtonFormField<String>(
+                        initialValue: null,
+                        isExpanded: true,
+                        hint: const Text('Sélectionner l’état'),
+                        dropdownColor: CouleursApp.blanc,
+                        decoration: _decoration(''),
+                        icon: const SizedBox.shrink(),
+                        items: _etats.entries.map((entry) {
+                          return DropdownMenuItem<String>(
+                            value: entry.key,
+                            child: Text(entry.value),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() => _etatMateriel = value);
+                          }
+                        },
+                      ),
+
+                      const SizedBox(height: 19),
+
+                      // Adresse de récupération
+                      _label('Adresse de récupération'),
+
+                      TextFormField(
+                        controller: _adresseController,
+                        textCapitalization: TextCapitalization.sentences,
+                        maxLines: 3,
+                        decoration: _decoration(
+                          'Indiquer le lieu où le matériel peut être récupéré',
+                        ),
+                      ),
+
+                      const SizedBox(height: 22),
+
+                      // Don anonyme : disposition verticale sans Row
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: CouleursApp.fond,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Checkbox(
+                              value: _anonyme,
+                              onChanged: (value) {
+                                setState(() {
+                                  _anonyme = value ?? false;
+                                });
+                              },
+                              activeColor: CouleursApp.vert,
+                              side: const BorderSide(
+                                color: CouleursApp.vert,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                              visualDensity: VisualDensity.compact,
+                            ),
+
+                            const SizedBox(height: 4),
+
+                            const Text(
+                              'Faire un don anonyme',
+                              softWrap: true,
+                              style: TextStyle(
+                                color: CouleursApp.noir,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+
+                            const SizedBox(height: 3),
+
+                            const Text(
+                              'Votre identité ne sera pas affichée.',
+                              softWrap: true,
+                              style: TextStyle(
+                                color: Colors.black54,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Bouton confirmer
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: _chargement ? null : _envoyerDon,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: CouleursApp.vert,
+                            foregroundColor: CouleursApp.blanc,
+                            disabledBackgroundColor: CouleursApp.vert,
+                            disabledForegroundColor: CouleursApp.blanc,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(13),
+                            ),
+                          ),
+                          child: _chargement
+                              ? const SizedBox(
+                            width: 21,
+                            height: 21,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: CouleursApp.blanc,
+                            ),
+                          )
+                              : const Text(
+                            'Confirmer mon don',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Informations sur le matériel',
-                  style: TextStyle(
-                    color: CouleursApp.noir,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _label('Désignation du matériel'),
-                TextFormField(
-                  controller: _designationController,
-                  textCapitalization: TextCapitalization.sentences,
-                  decoration: _decoration(
-                    'Ex. : Mil, riz, huile...',
-                    Icons.inventory_2_outlined,
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Veuillez saisir le matériel à donner.';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 18),
-                _label('Quantité'),
-                TextFormField(
-                  controller: _quantiteController,
-                  keyboardType: TextInputType.number,
-                  decoration: _decoration(
-                    'Ex. : 10',
-                    Icons.numbers,
-                  ),
-                  validator: (value) {
-                    final quantite = int.tryParse(value?.trim() ?? '');
 
-                    if (quantite == null || quantite <= 0) {
-                      return 'Saisissez une quantité entière supérieure à 0.';
-                    }
-
-                    return null;
-                  },
-                ),
                 const SizedBox(height: 18),
-                _label('Unité de mesure'),
-                DropdownButtonFormField<String>(
-                  initialValue: _unite,
-                  isExpanded: true,
-                  dropdownColor: CouleursApp.blanc,
-                  decoration: _decoration(
-                    'Choisir une unité',
-                    Icons.straighten,
-                  ),
-                  items: _unites.map((unite) {
-                    return DropdownMenuItem<String>(
-                      value: unite,
-                      child: Text(
-                        unite,
-                        style: const TextStyle(
-                          color: CouleursApp.noir,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => _unite = value);
-                    }
-                  },
-                ),
-                const SizedBox(height: 18),
-                _label('État du matériel'),
-                DropdownButtonFormField<String>(
-                  initialValue: _etatMateriel,
-                  isExpanded: true,
-                  dropdownColor: CouleursApp.blanc,
-                  decoration: _decoration(
-                    'Choisir un état',
-                    Icons.check_circle_outline,
-                  ),
-                  items: _etats.entries.map((entry) {
-                    return DropdownMenuItem<String>(
-                      value: entry.key,
-                      child: Text(
-                        entry.value,
-                        style: const TextStyle(
-                          color: CouleursApp.noir,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => _etatMateriel = value);
-                    }
-                  },
-                ),
-                const SizedBox(height: 18),
-                _label('Adresse de livraison'),
-                TextFormField(
-                  controller: _adresseController,
-                  textCapitalization: TextCapitalization.sentences,
-                  maxLines: 2,
-                  decoration: _decoration(
-                    'Entrez votre adresse',
-                    Icons.location_on_outlined,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  decoration: BoxDecoration(
-                    color: CouleursApp.blanc,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: SwitchListTile(
-                    value: _anonyme,
-                    activeTrackColor: CouleursApp.vert,
-                    title: const Text(
-                      'Faire un don anonyme',
-                      style: TextStyle(
-                        color: CouleursApp.noir,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    subtitle: const Text(
-                      'Votre identité ne sera pas affichée publiquement.',
-                      style: TextStyle(
-                        color: CouleursApp.noir,
-                      ),
-                    ),
-                    secondary: const Icon(
-                      Icons.visibility_off_outlined,
-                      color: CouleursApp.vert,
-                    ),
-                    onChanged: (value) {
-                      setState(() => _anonyme = value);
-                    },
-                  ),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 54,
-                  child: ElevatedButton.icon(
-                    onPressed: _chargement ? null : _envoyerDon,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: CouleursApp.vert,
-                      foregroundColor: CouleursApp.blanc,
-                      disabledBackgroundColor: CouleursApp.vert,
-                      disabledForegroundColor: CouleursApp.blanc,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    icon: _chargement
-                        ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: CouleursApp.blanc,
-                      ),
-                    )
-                        : const Icon(Icons.volunteer_activism),
-                    label: Text(
-                      _chargement
-                          ? 'Enregistrement...'
-                          : 'Confirmer mon don',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Center(
-                  child: Text(
-                    'Aucun prix ne vous sera demandé.',
-                    style: TextStyle(
-                      color: CouleursApp.noir,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -379,36 +432,37 @@ class _DonMaterielGeneralPageState
         texte,
         style: const TextStyle(
           color: CouleursApp.noir,
+          fontSize: 13,
           fontWeight: FontWeight.w600,
         ),
       ),
     );
   }
 
-  InputDecoration _decoration(String hint, IconData icone) {
+  InputDecoration _decoration(String hint) {
     return InputDecoration(
       hintText: hint,
       hintStyle: TextStyle(
-        color: CouleursApp.noir.withValues(alpha: 0.55),
-      ),
-      prefixIcon: Icon(
-        icone,
-        color: CouleursApp.vert,
+        color: CouleursApp.noir.withValues(alpha: 0.4),
+        fontSize: 12,
       ),
       filled: true,
-      fillColor: CouleursApp.blanc,
+      fillColor: CouleursApp.fond.withValues(alpha: 0.45),
+      isDense: true,
       contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
+        horizontal: 14,
         vertical: 16,
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+        borderSide: BorderSide(
+          color: CouleursApp.noir.withValues(alpha: 0.08),
+        ),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(
-          color: CouleursApp.noir.withValues(alpha: 0.12),
+          color: CouleursApp.noir.withValues(alpha: 0.10),
         ),
       ),
       focusedBorder: OutlineInputBorder(
@@ -421,13 +475,13 @@ class _DonMaterielGeneralPageState
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(
-          color: CouleursApp.jaune,
+          color: Colors.red,
         ),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(
-          color: CouleursApp.jaune,
+          color: Colors.red,
           width: 1.5,
         ),
       ),

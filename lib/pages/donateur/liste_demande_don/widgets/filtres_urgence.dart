@@ -13,50 +13,66 @@ class FiltresUrgence extends StatelessWidget {
     required this.onSelectionChanged,
   });
 
-  static const vert = Color(0xFF0F7A4B);
+  static const Color vert = Color(0xFF0F7A4B);
+  static const Color fonce = Color(0xFF1F1F1F);
+  static const Color bordure = Color(0xFFEAE6DF);
 
   @override
   Widget build(BuildContext context) {
+    // Évite de construire une liste inutile si aucune valeur n'est disponible.
+    if (niveaux.isEmpty) {
+      return const SizedBox(height: 42);
+    }
+
     return SizedBox(
       height: 42,
-      child: ListView(
+      child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        children: niveaux.map((niveau) {
-          final actif =
-              niveau.toLowerCase() == selection.toLowerCase();
+        padding: EdgeInsets.zero,
+        physics: const BouncingScrollPhysics(),
+        itemCount: niveaux.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 9),
+        itemBuilder: (context, index) {
+          final niveau = niveaux[index];
 
-          return Padding(
-            padding: const EdgeInsets.only(right: 9),
-            child: Material(
-              color: actif ? vert : Colors.white,
+          final actif =
+              niveau.trim().toLowerCase() ==
+                  selection.trim().toLowerCase();
+
+          return Material(
+            color: actif ? vert : Colors.white,
+            borderRadius: BorderRadius.circular(25),
+            child: InkWell(
+              onTap: () => onSelectionChanged(niveau),
               borderRadius: BorderRadius.circular(25),
-              child: InkWell(
-                onTap: () => onSelectionChanged(niveau),
-                borderRadius: BorderRadius.circular(25),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
+              child: Container(
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(25),
+                  border: Border.all(
+                    color: actif ? vert : bordure,
                   ),
-                  child: Center(
-                    child: Text(
-                      niveau,
-                      style: TextStyle(
-                        color: actif
-                            ? Colors.white
-                            : const Color(0xFF1F1F1F),
-                        fontSize: 12,
-                        fontWeight: actif
-                            ? FontWeight.w700
-                            : FontWeight.w500,
-                      ),
-                    ),
+                ),
+                child: Text(
+                  niveau,
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: actif ? Colors.white : fonce,
+                    fontSize: 12,
+                    fontWeight: actif
+                        ? FontWeight.w700
+                        : FontWeight.w500,
                   ),
                 ),
               ),
             ),
           );
-        }).toList(),
+        },
       ),
     );
   }
