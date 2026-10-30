@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/don_materiel.dart';
+import 'auth_repository.dart';
 
 // Client HTTP
 final httpClientProvider = Provider<http.Client>((ref) {
@@ -275,7 +276,7 @@ Provider<DonMaterielRepository>((ref) {
 
   return DonMaterielRepository(
     client: client,
-    baseUrl: 'http://localhost:8080',
+    baseUrl: AuthRepository.baseUrl,
   );
 });
 

@@ -1,4 +1,3 @@
-
 // Transforme une exception d'inscription en message lisible pour l'utilisateur
 String messageErreurInscription(Object e) {
   final message = e.toString().replaceFirst('Exception: ', '').trim();
@@ -22,7 +21,7 @@ String messageErreurInscription(Object e) {
   }
 
   if (message.contains('500') || minuscules.contains('internal server error')) {
-    return 'Erreur serveur (500). Veuillez réessayer dans quelques instants.';
+    return 'Erreur (500) : Ce numéro de téléphone est probablement déjà utilisé par un compte existant.';
   }
 
   if (message.contains('400') || minuscules.contains('bad request')) {

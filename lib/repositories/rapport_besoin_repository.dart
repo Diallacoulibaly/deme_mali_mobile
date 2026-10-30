@@ -5,9 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/rapport_besoin.dart';
+import 'auth_repository.dart';
 
 class RapportBesoinRepository {
-  static const String baseUrl = 'http://localhost:8080';
+  static const String baseUrl = AuthRepository.baseUrl;
 
   /// Récupérer le rapport de besoin associé à une étude de terrain.
   Future<RapportBesoin?> getRapportBesoinPourEtude(

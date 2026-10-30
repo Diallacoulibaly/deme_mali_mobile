@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/organisation_partenaire.dart';
+import 'auth_repository.dart';
 
 class OrganisationPartenaireRepository {
   final String baseUrl;
@@ -105,7 +106,7 @@ class OrganisationPartenaireRepository {
 /// Repository disponible dans Riverpod.
 final organisationPartenaireRepositoryProvider =
 Provider<OrganisationPartenaireRepository>((ref) {
-  const baseUrl = 'http://localhost:8080';
+  const baseUrl = AuthRepository.baseUrl;
 
   final repository = OrganisationPartenaireRepository(
     baseUrl: baseUrl,

@@ -5,9 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/beneficiaire.dart';
+import 'auth_repository.dart';
 
 class BeneficiaireRepository {
-  static const String baseUrl = 'http://localhost:8080/api';
+  static const String baseUrl = '${AuthRepository.baseUrl}/api';
 
   /// Récupérer un bénéficiaire par son identifiant.
   Future<Beneficiaire> getBeneficiaireById(int id) async {

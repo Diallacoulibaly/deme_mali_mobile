@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:curved_labeled_navigation_bar/curved_navigation_bar.dart';
 import 'package:curved_labeled_navigation_bar/curved_navigation_bar_item.dart';
@@ -28,47 +27,53 @@ class BarreNavigation extends StatelessWidget {
       animationCurve: Curves.easeInOut,
       animationDuration: const Duration(milliseconds: 300),
 
-      items: const [
+      items: [
         CurvedNavigationBarItem(
           child: Icon(
-            Icons.home_rounded,
-            color: vert,
+            indexSelectionne == 0 ? Icons.home_rounded : Icons.home_outlined,
+            color: indexSelectionne == 0 ? vert : blanc,
           ),
           label: 'Accueil',
-          labelStyle: TextStyle(
-            color: vert,
+          labelStyle: const TextStyle(
+            color: blanc,
             fontSize: 11,
           ),
         ),
         CurvedNavigationBarItem(
           child: Icon(
-            Icons.account_balance_outlined,
-            color: blanc,
+            indexSelectionne == 1
+                ? Icons.account_balance_rounded
+                : Icons.account_balance_outlined,
+            color: indexSelectionne == 1 ? vert : blanc,
           ),
           label: 'Organisations',
-          labelStyle: TextStyle(
+          labelStyle: const TextStyle(
             color: blanc,
             fontSize: 11,
           ),
         ),
         CurvedNavigationBarItem(
           child: Icon(
-            Icons.handshake_outlined,
-            color: blanc,
+            indexSelectionne == 2
+                ? Icons.handshake_rounded
+                : Icons.handshake_outlined,
+            color: indexSelectionne == 2 ? vert : blanc,
           ),
           label: 'Mes dons',
-          labelStyle: TextStyle(
+          labelStyle: const TextStyle(
             color: blanc,
             fontSize: 11,
           ),
         ),
         CurvedNavigationBarItem(
           child: Icon(
-            Icons.person_rounded,
-            color: blanc,
+            indexSelectionne == 3
+                ? Icons.person_rounded
+                : Icons.person_outline_rounded,
+            color: indexSelectionne == 3 ? vert : blanc,
           ),
           label: 'Profil',
-          labelStyle: TextStyle(
+          labelStyle: const TextStyle(
             color: blanc,
             fontSize: 11,
           ),

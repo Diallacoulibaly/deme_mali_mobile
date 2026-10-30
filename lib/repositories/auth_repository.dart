@@ -1,6 +1,6 @@
-
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -10,11 +10,10 @@ import '../models/reponse_connexion.dart';
 
 class AuthRepository {
   // Adresse du backend Spring Boot
-  static const String baseUrl = 'http://192.168.100.82:8080';
+  static const String baseUrl = 'http://192.168.10.118:8080';
 
   // Stockage du token
-  final FlutterSecureStorage stockage =
-  const FlutterSecureStorage();
+  final FlutterSecureStorage stockage = const FlutterSecureStorage();
 
   // Connexion de l'utilisateur
   Future<ReponseConnexion> connexion({
@@ -24,10 +23,13 @@ class AuthRepository {
     final url = Uri.parse('$baseUrl/api/auth/login');
     final chrono = Stopwatch()..start();
 
-    try {
-      debugPrint('[CONNEXION] Envoi de la requête...');
+    // Normaliser le numéro : supprimer tous les espaces
+    final telNettoye = telephone.replaceAll(RegExp(r'\s+'), '');
 
-      final reponse = await http
+    try {
+      debugPrint('[CONNEXION] Envoi de la requete pour $telNettoye...');
+
+      http.Response reponse = await http
           .post(
         url,
         headers: {
@@ -35,45 +37,86 @@ class AuthRepository {
           'Accept': 'application/json',
         },
         body: jsonEncode({
-          'telephone': telephone.trim(),
+          'telephone': telNettoye,
           'motDePasse': motDePasse,
         }),
       )
           .timeout(const Duration(seconds: 15));
 
+      // Si echec 403 et que le numero commence par +223, essayer sans +223
+      if (reponse.statusCode == 403 && telNettoye.startsWith('+223')) {
+        final telSansIndicatif = telNettoye.replaceFirst('+223', '');
+        debugPrint('[CONNEXION] Nouvelle tentative sans indicatif : $telSansIndicatif');
+        try {
+          final reponse2 = await http.post(
+            url,
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode({
+              'telephone': telSansIndicatif,
+              'motDePasse': motDePasse,
+            }),
+          ).timeout(const Duration(seconds: 10));
+          if (reponse2.statusCode == 200) {
+            reponse = reponse2;
+          }
+        } catch (_) {}
+      } else if (reponse.statusCode == 403 && !telNettoye.startsWith('+') && telNettoye.length == 8) {
+        // Inversement, si le numero a 8 chiffres, essayer avec +223
+        final telAvecIndicatif = '+223$telNettoye';
+        debugPrint('[CONNEXION] Nouvelle tentative avec indicatif : $telAvecIndicatif');
+        try {
+          final reponse2 = await http.post(
+            url,
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode({
+              'telephone': telAvecIndicatif,
+              'motDePasse': motDePasse,
+            }),
+          ).timeout(const Duration(seconds: 10));
+          if (reponse2.statusCode == 200) {
+            reponse = reponse2;
+          }
+        } catch (_) {}
+      }
+
       debugPrint(
-        '[CONNEXION] Réponse HTTP reçue : '
+        '[CONNEXION] Reponse HTTP recue (${reponse.statusCode}) : '
             '${chrono.elapsedMilliseconds} ms',
       );
+
+      if (reponse.statusCode == 403 || reponse.statusCode == 401) {
+        throw Exception('Numero de telephone ou mot de passe incorrect.');
+      }
 
       if (reponse.statusCode != 200) {
         throw Exception(
-          'Erreur HTTP ${reponse.statusCode} : ${reponse.body}',
+          'Erreur serveur (${reponse.statusCode}) : ${reponse.body}',
         );
       }
 
-      // Lire la réponse du backend
-      final donnees =
-      jsonDecode(reponse.body) as Map<String, dynamic>;
+      // Lire la reponse du backend
+      final donnees = jsonDecode(reponse.body) as Map<String, dynamic>;
 
-      // Convertir la réponse en objet Flutter
+      // Convertir la reponse en objet Flutter
       final resultat = ReponseConnexion.fromJson(donnees);
 
       debugPrint(
-        '[CONNEXION] JSON analysé : '
+        '[CONNEXION] JSON analyse : '
             '${chrono.elapsedMilliseconds} ms',
       );
 
-      // Enregistrer le token reçu
+      // Enregistrer le token recu
       await stockage.write(
         key: 'accessToken',
         value: resultat.accessToken,
       ).timeout(const Duration(seconds: 5));
 
-      debugPrint(
-        '[CONNEXION] Token enregistré : '
-            '${chrono.elapsedMilliseconds} ms',
-      );
       await stockage.write(
         key: 'userId',
         value: resultat.utilisateur.id.toString(),
@@ -96,32 +139,36 @@ class AuthRepository {
       );
 
       return resultat;
+    } on SocketException {
+      debugPrint('[CONNEXION] Erreur Socket (serveur inaccessible)');
+      throw Exception(
+        'Impossible de joindre le serveur ($baseUrl). '
+        'Verifiez que votre telephone et votre ordinateur sont sur le meme reseau Wi-Fi.',
+      );
     } on TimeoutException {
-      debugPrint('[CONNEXION] Délai dépassé.');
-
+      debugPrint('[CONNEXION] Delai depasse.');
       throw Exception(
         'La connexion prend trop de temps. '
-            'Vérifiez que le serveur est démarré.',
+        'Verifiez que le serveur est demarre et joignable sur $baseUrl.',
       );
     } catch (e) {
       debugPrint('[CONNEXION] Erreur : $e');
       rethrow;
     } finally {
       chrono.stop();
-
       debugPrint(
-        '[CONNEXION] Durée totale : '
+        '[CONNEXION] Duree totale : '
             '${chrono.elapsedMilliseconds} ms',
       );
     }
   }
 
-  // Récupérer le token enregistré
+  // Recuperer le token enregistre
   Future<String?> recupererToken() async {
     return stockage.read(key: 'accessToken');
   }
 
-  // Déconnexion : supprimer les données de session
+  // Deconnexion : supprimer les donnees de session
   Future<void> deconnexion() async {
     await stockage.deleteAll();
   }

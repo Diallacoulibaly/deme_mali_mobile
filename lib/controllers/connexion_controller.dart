@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import '../models/reponse_connexion.dart';
@@ -44,8 +43,10 @@ class ConnexionController extends ChangeNotifier {
       debugPrint('ERREUR DE CONNEXION : $e');
       debugPrint('DÉTAILS : $stackTrace');
 
-      erreur = 'Échec de la connexion. Vérifiez les identifiants '
-          'ou consultez les logs pour plus de détails.';
+      final msg = e.toString().replaceFirst('Exception: ', '').trim();
+      erreur = msg.isNotEmpty
+          ? msg
+          : 'Échec de la connexion. Vérifiez vos identifiants.';
 
       return false;
     } finally {

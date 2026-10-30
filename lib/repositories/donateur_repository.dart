@@ -129,6 +129,10 @@ class DonateurRepository {
       return;
     }
 
+    if (reponse.statusCode == 500) {
+      throw Exception('Ce numéro de téléphone est déjà associé à un compte ou les données saisies sont invalides.');
+    }
+
     try {
       final corps = jsonDecode(utf8.decode(reponse.bodyBytes));
       if (corps is Map<String, dynamic>) {

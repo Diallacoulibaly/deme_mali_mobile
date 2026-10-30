@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/affectation_don.dart';
+import 'auth_repository.dart';
 
 class AffectationDonRepository {
   final String baseUrl;
@@ -107,7 +108,7 @@ class AffectationDonRepository {
 /// Provider Riverpod du repository.
 final affectationDonRepositoryProvider =
 Provider<AffectationDonRepository>((ref) {
-  const baseUrl = 'http://localhost:8080';
+  const baseUrl = AuthRepository.baseUrl;
 
   final repository = AffectationDonRepository(
     baseUrl: baseUrl,

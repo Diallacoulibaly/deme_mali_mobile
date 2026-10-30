@@ -1,7 +1,8 @@
-
 import 'package:flutter/material.dart';
 
 import '../../controllers/connexion_controller.dart';
+import '../../repositories/auth_repository.dart';
+import '../../repositories/beneficiaire_repository.dart';
 import '../../styles/couleurs.dart';
 import '../beneficiaire/accueil_beneficiaire.dart';
 import '../navigation_donateur_page.dart';
@@ -66,6 +67,103 @@ class _ConnexionPageState extends State<ConnexionPage> {
     final role = utilisateur.role.trim().toUpperCase();
 
     if (role == 'BENEFICIAIRE' || role == 'BENEFICIARE') {
+      try {
+        final repo = BeneficiaireRepository();
+        final beneficiaire = await repo.getBeneficiaireById(utilisateur.id);
+        final statut = (beneficiaire.statut ?? '').toUpperCase();
+        final typeBeneficiaire = (beneficiaire.typeBeneficiaire ?? '').toUpperCase();
+
+        if (statut == 'EN_ATTENTE') {
+          await AuthRepository().deconnexion();
+          if (!mounted) return;
+
+          final bool estStructure = typeBeneficiaire == 'STRUCTURE';
+          final String messageAttente = estStructure
+              ? "Votre compte structure est en attente de validation par l'administrateur. Vous pourrez vous connecter dès que l'administrateur aura validé votre structure."
+              : "Votre compte est en attente de validation par votre organisation partenaire. Vous pourrez vous connecter dès que l'organisation aura validé votre dossier.";
+
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Row(
+                children: const [
+                  Icon(Icons.hourglass_top_rounded, color: Color(0xFFD97706)),
+                  SizedBox(width: 8),
+                  Text('Compte en attente'),
+                ],
+              ),
+              content: Text(
+                messageAttente,
+                style: const TextStyle(fontSize: 14, height: 1.4),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text(
+                    'Compris',
+                    style: TextStyle(
+                      color: CouleursApp.vert,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+          return;
+        } else if (statut == 'REFUSE') {
+          await AuthRepository().deconnexion();
+          if (!mounted) return;
+
+          final bool estStructure = typeBeneficiaire == 'STRUCTURE';
+          final String messageRefus = estStructure
+              ? "Votre compte structure a été refusé par l'administrateur."
+              : "Votre inscription a été refusée par l'organisation partenaire.";
+
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Row(
+                children: const [
+                  Icon(Icons.cancel_outlined, color: Colors.red),
+                  SizedBox(width: 8),
+                  Text('Compte refusé'),
+                ],
+              ),
+              content: Text(
+                messageRefus,
+                style: const TextStyle(fontSize: 14, height: 1.4),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text(
+                    'Fermer',
+                    style: TextStyle(
+                      color: CouleursApp.vert,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+          return;
+        }
+      } catch (e) {
+        debugPrint('Erreur lors de la vérification du statut du bénéficiaire : $e');
+      }
+
+      if (!mounted) return;
+
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(

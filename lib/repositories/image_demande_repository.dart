@@ -5,9 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/image_demande.dart';
+import 'auth_repository.dart';
 
 class ImageDemandeRepository {
-  static const String baseUrl = 'http://localhost:8080/api';
+  static const String baseUrl = '${AuthRepository.baseUrl}/api';
 
   // Récupérer les images associées à une demande.
   Future<List<ImageDemande>> getImagesDemande(int demandeId) async {

@@ -12,21 +12,21 @@ import '../detail/detail_demande_page.dart';
 import '../don/faire_un_don_page.dart';
 import '../don/don_financier/don_financier_page.dart';
 
-class ListeDemandesDon extends ConsumerStatefulWidget {
+class ListeDemandesDonPage extends ConsumerStatefulWidget {
   final int donateurId;
 
-  const ListeDemandesDon({
+  const ListeDemandesDonPage({
     super.key,
     required this.donateurId,
   });
 
   @override
-  ConsumerState<ListeDemandesDon> createState() =>
-      _ListeDemandesDonState();
+  ConsumerState<ListeDemandesDonPage> createState() =>
+      _ListeDemandesDonPageState();
 }
 
-class _ListeDemandesDonState
-    extends ConsumerState<ListeDemandesDon> {
+class _ListeDemandesDonPageState
+    extends ConsumerState<ListeDemandesDonPage> {
   String texteRecherche = '';
   String urgenceSelectionnee = 'Toutes';
   int? categorieSelectionneeId;
