@@ -465,3 +465,10 @@ class DemandeAideController extends AsyncNotifier<List<DemandeAide>> {
     state = await AsyncValue.guard(_chargerDemandes);
   }
 }
+
+/// Récupérer une demande d'aide précise par son identifiant.
+final demandeAideDetailProvider =
+    FutureProvider.family<DemandeAide, int>((ref, id) async {
+  final repository = ref.watch(donateur_repo.demandeAideRepositoryProvider);
+  return repository.getDemandeById(id);
+});

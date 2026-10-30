@@ -66,7 +66,7 @@ class _ConnexionPageState extends State<ConnexionPage> {
     final role = utilisateur.role.trim().toUpperCase();
 
     if (role == 'BENEFICIAIRE' || role == 'BENEFICIARE') {
-      Navigator.pushReplacement(
+      Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
           builder: (context) => AccueilBeneficiairePage(
@@ -76,15 +76,15 @@ class _ConnexionPageState extends State<ConnexionPage> {
         (route) => false,
       );
     } else if (role == 'DONATEUR') {
-      Navigator.pushReplacement(
+      Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
           builder: (context) => NavigationDonateurPage(
             prenom: utilisateur.prenom,
             donateurId: utilisateur.id,
-
           ),
         ),
+        (route) => false,
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
