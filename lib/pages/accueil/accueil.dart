@@ -53,6 +53,25 @@ class AccueilPage extends StatelessWidget {
                     width: 76,
                     height: 76,
                     fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => Image.asset(
+                      'assets/images/logo_accueil.png',
+                      width: 76,
+                      height: 76,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error2, stackTrace2) => Container(
+                        width: 76,
+                        height: 76,
+                        decoration: BoxDecoration(
+                          color: CouleursApp.vert.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.volunteer_activism,
+                          color: CouleursApp.vert,
+                          size: 40,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),

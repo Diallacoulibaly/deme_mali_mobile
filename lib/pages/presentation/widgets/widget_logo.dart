@@ -15,6 +15,12 @@ class WidgetLogo extends StatelessWidget {
           width: 82,
           height: 82,
           fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => Image.asset(
+            'assets/images/logo_accueil.png',
+            width: 82,
+            height: 82,
+            fit: BoxFit.contain,
+          ),
         ),
         const SizedBox(height: 2),
         RichText(

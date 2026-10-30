@@ -2,10 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '/../../../models/aide_distribuee.dart';
-import '/../../../styles/couleurs.dart';
-import '/../../../controllers/beneficiaire_controller.dart';
-import '/../../../controllers/demande_aide_controller.dart';
+import 'package:deme_mali_mobile/models/aide_distribuee.dart';
+import 'package:deme_mali_mobile/styles/couleurs.dart';
+import 'package:deme_mali_mobile/controllers/beneficiaire_controller.dart';
+import 'package:deme_mali_mobile/controllers/demande_aide_controller.dart';
 
 class DetailsDestinataireAideWidget extends ConsumerWidget {
   const DetailsDestinataireAideWidget({

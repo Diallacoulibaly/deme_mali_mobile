@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../controllers/accueil_beneficiaire_controller.dart';
 import '../../../styles/couleurs.dart';
+import '../detail/detail_aide_page.dart';
 import 'carte_demande.dart';
 
 class ListeDemandes extends ConsumerWidget {
@@ -21,16 +22,27 @@ class ListeDemandes extends ConsumerWidget {
       async.when(
         loading: () => const Padding(padding: EdgeInsets.all(22),
           child: Center(child: CircularProgressIndicator(color: CouleursApp.vert))),
-        error: (_, __) => _Etat(message: 'Impossible de charger les demandes.',
+        error: (error, stack) => _Etat(message: 'Impossible de charger les demandes.',
           action: 'Réessayer', onPressed: () => ref.invalidate(mesDemandesBeneficiaireProvider)),
         data: (demandes) {
-          if (demandes.isEmpty) return _Etat(
-            message: 'Vous n’avez pas encore de demande d’aide.',
-            action: 'Faire une demande', onPressed: onDemander);
+          if (demandes.isEmpty) {
+            return _Etat(
+              message: 'Vous n’avez pas encore de demande d’aide.',
+              action: 'Faire une demande', onPressed: onDemander);
+          }
           final recent = demandes.take(3).toList();
           return Column(children: [
             for (var i = 0; i < recent.length; i++) ...[
-              CarteDemande(demande: recent[i]),
+              CarteDemande(
+                demande: recent[i],
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => DetailAidePage(demande: recent[i]),
+                    ),
+                  );
+                },
+              ),
               if (i < recent.length - 1) const SizedBox(height: 10),
             ],
           ]);

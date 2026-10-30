@@ -5,9 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/don_financier.dart';
+import 'auth_repository.dart';
 
 // URL du backend Spring Boot pour l'émulateur Android.
-const String apiBaseUrl =  'http://localhost:8080';
+const String apiBaseUrl = AuthRepository.baseUrl;
 
 // Client HTTP partagé par les dépôts.
 final httpClientProvider = Provider<http.Client>((ref) {

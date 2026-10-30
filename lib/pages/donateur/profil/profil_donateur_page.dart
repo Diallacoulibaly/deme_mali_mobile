@@ -4,11 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 import 'package:deme_mali_mobile/models/don_financier.dart';
-import 'package:deme_mali_mobile/models/don_materiel.dart';
 import 'package:deme_mali_mobile/models/badge_donateur_model.dart';
 import 'package:deme_mali_mobile/controllers/badge_controller.dart';
 import 'package:deme_mali_mobile/controllers/don_financier_controller.dart';
-import 'package:deme_mali_mobile/controllers/don_materiel_controller.dart';
 import 'package:deme_mali_mobile/styles/couleurs.dart';
 class ProfilDonateurPage extends ConsumerWidget {
   final int donateurId;
@@ -25,9 +23,6 @@ class ProfilDonateurPage extends ConsumerWidget {
     final donsFinanciersAsync =
     ref.watch(donsFinanciersDonateurControllerProvider(donateurId));
 
-    final donsMaterielsAsync =
-    ref.watch(donsMaterielsParDonateurProvider(donateurId));
-
     final badgesAsync = ref.watch(badgesActuelsProvider(donateurId));
 
     return Scaffold(
@@ -39,17 +34,11 @@ class ProfilDonateurPage extends ConsumerWidget {
             ref.invalidate(
               donsFinanciersDonateurControllerProvider(donateurId),
             );
-            ref.invalidate(
-              donsMaterielsParDonateurProvider(donateurId),
-            );
             ref.invalidate(badgesActuelsProvider(donateurId));
 
             await Future.wait([
               ref.read(
                 donsFinanciersDonateurControllerProvider(donateurId).future,
-              ),
-              ref.read(
-                donsMaterielsParDonateurProvider(donateurId).future,
               ),
               ref.read(badgesActuelsProvider(donateurId).future),
             ]);
@@ -235,30 +224,6 @@ class ProfilDonateurPage extends ConsumerWidget {
                   'Impossible de charger le graphique.',
                 ),
                 data: (dons) => _graphiqueMensuel(dons),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Statistiques des dons matériels
-              const Text(
-                'Mes dons matériels',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: CouleursApp.noir,
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              donsMaterielsAsync.when(
-                loading: () => const Center(
-                  child: CircularProgressIndicator(),
-                ),
-                error: (error, stack) => _messageErreur(
-                  'Impossible de charger les dons matériels.',
-                ),
-                data: (dons) => _statistiquesMaterielles(dons),
               ),
             ],
           ),
@@ -540,51 +505,6 @@ class ProfilDonateurPage extends ConsumerWidget {
                   );
                 }),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _statistiquesMaterielles(List<DonMateriel> dons) {
-    final quantiteRecue = dons.fold<int>(
-      0,
-          (total, don) => total + don.quantiteRecue,
-    );
-
-    final nombreRecus = dons.where((don) {
-      return don.statutReception == 'RECU' ||
-          don.statutReception == 'PARTIELLEMENT_RECU';
-    }).length;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: CouleursApp.blanc,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _statistique(
-              'Dons matériels',
-              '${dons.length}',
-              Icons.inventory_2_outlined,
-            ),
-          ),
-          Expanded(
-            child: _statistique(
-              'Dons réceptionnés',
-              '$nombreRecus',
-              Icons.check_circle_outline,
-            ),
-          ),
-          Expanded(
-            child: _statistique(
-              'Quantité reçue',
-              '$quantiteRecue',
-              Icons.volunteer_activism_outlined,
             ),
           ),
         ],

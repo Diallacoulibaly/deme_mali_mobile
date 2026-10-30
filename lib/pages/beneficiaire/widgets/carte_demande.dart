@@ -56,7 +56,6 @@ class CarteDemande extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final d = demande.dateCreation;
-
     final date = d == null
         ? 'Date non disponible'
         : '${d.day.toString().padLeft(2, '0')}/'

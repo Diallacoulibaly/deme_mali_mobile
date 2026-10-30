@@ -4,9 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/demande_aide.dart';
+import 'auth_repository.dart';
 
 class DemandeAideRepository {
-  static const String baseUrl = 'http://localhost:8080/api';
+  static const String baseUrl = '${AuthRepository.baseUrl}/api';
   // Récupérer les demandes disponibles pour les dons.
   // Conditions : demande validée et collecte non terminée.
   Future<List<DemandeAide>> getDemandesDisponibles() async {
