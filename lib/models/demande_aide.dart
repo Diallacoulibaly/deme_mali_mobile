@@ -2,6 +2,7 @@ import 'article_demande.dart';
 
 class DemandeAide {
   final int id;
+  final int nombreDonateurs;
   final String titre;
   final String descriptionSituation;
   final String niveauUrgence;
@@ -23,23 +24,49 @@ class DemandeAide {
   // Montant validé par l'équipe technique après étude de terrain
   final double? montantFinal;
   final String? descriptionTechnique;
-  final int? nombreDonateurs;
 
   const DemandeAide({
-    required this.id, required this.titre, required this.descriptionSituation,
-    required this.niveauUrgence, required this.statut, this.dateCreation,
-    this.motif, this.nombrePersonne, this.montantNecessaire, this.montantCollecte,
-    this.statutCollecte, this.beneficiaireId, this.beneficiaireNom,
-    this.beneficiairePrenom, this.categorieDemandeId, this.categorieDemandeNom,
-    this.typeDemande, this.typeDemandeAide, this.articles = const [],
-    this.montantFinal, this.descriptionTechnique, this.nombreDonateurs,
+    required this.id,
+    this.nombreDonateurs = 0,
+    required this.titre,
+    required this.descriptionSituation,
+    required this.niveauUrgence,
+    required this.statut,
+    this.dateCreation,
+    this.motif,
+    this.nombrePersonne,
+    this.montantNecessaire,
+    this.montantCollecte,
+    this.statutCollecte,
+    this.beneficiaireId,
+    this.beneficiaireNom,
+    this.beneficiairePrenom,
+    this.categorieDemandeId,
+    this.categorieDemandeNom,
+    this.typeDemande,
+    this.typeDemandeAide,
+    this.articles = const [],
+    this.montantFinal,
+    this.descriptionTechnique,
   });
 
   factory DemandeAide.fromJson(Map<String, dynamic> json) {
-    DateTime? date(dynamic v) => v == null ? null : DateTime.tryParse(v.toString());
-    int? integer(dynamic v) => v == null ? null : (v is num ? v.toInt() : int.tryParse(v.toString()));
-    double? decimal(dynamic v) => v == null ? null : (v is num ? v.toDouble() : double.tryParse(v.toString()));
-    
+    DateTime? date(dynamic value) {
+      return value == null ? null : DateTime.tryParse(value.toString());
+    }
+
+    int? integer(dynamic value) {
+      if (value == null) return null;
+      if (value is num) return value.toInt();
+      return int.tryParse(value.toString());
+    }
+
+    double? decimal(dynamic value) {
+      if (value == null) return null;
+      if (value is num) return value.toDouble();
+      return double.tryParse(value.toString());
+    }
+
     dynamic rawArticles = json['articles'] ?? json['articlesDemandes'] ?? json['articlesDemande'];
     List<ArticleDemande> articlesList = const [];
     if (rawArticles is List) {
@@ -51,6 +78,7 @@ class DemandeAide {
 
     return DemandeAide(
       id: integer(json['id']) ?? 0,
+      nombreDonateurs: integer(json['nombreDonateurs'] ?? json['nombreDonateur'] ?? json['donateursCount']) ?? 0,
       titre: (json['titre'] ?? '').toString(),
       descriptionSituation: (json['descriptionSituation'] ?? json['description'] ?? '').toString(),
       niveauUrgence: (json['niveauUrgence'] ?? json['urgence'] ?? 'Urgente').toString(),
@@ -74,7 +102,6 @@ class DemandeAide {
       articles: articlesList,
       montantFinal: decimal(json['montantFinal'] ?? json['montantApresEtude'] ?? json['montantTechnique']),
       descriptionTechnique: json['descriptionTechnique']?.toString(),
-      nombreDonateurs: integer(json['nombreDonateurs'] ?? json['nombreDonateur'] ?? json['donateursCount']),
     );
   }
 
@@ -161,6 +188,16 @@ class DemandeAide {
   /// Pourcentage entier de collecte
   int get pourcentageCollecte => (ratioCollecte * 100).toInt();
 
+  bool get estFinanciere {
+    final type = (typeDemandeAide ?? typeDemande ?? '').toUpperCase();
+    return type == 'FINANCIERE';
+  }
+
+  bool get estMaterielle {
+    final type = (typeDemandeAide ?? typeDemande ?? '').toUpperCase();
+    return type == 'MATERIELLE';
+  }
+
   /// Comparateur pour trier du plus récent au plus ancien (décroissant)
   static int comparerPlusRecentDAbord(DemandeAide a, DemandeAide b) {
     if (a.dateCreation != null && b.dateCreation != null) {
@@ -175,4 +212,3 @@ class DemandeAide {
     return b.id.compareTo(a.id);
   }
 }
-

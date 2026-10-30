@@ -1,27 +1,24 @@
+
 class CategorieDemande {
   final int id;
   final String nom;
-  final String? description;
 
   const CategorieDemande({
     required this.id,
     required this.nom,
-    this.description,
   });
 
   factory CategorieDemande.fromJson(Map<String, dynamic> json) {
     return CategorieDemande(
-      id: (json['id'] as num?)?.toInt() ?? 0,
-      nom: (json['nom'] ?? json['libelle'] ?? json['titre'] ?? '').toString(),
-      description: json['description']?.toString(),
+      id: (json['id'] as num).toInt(),
+      nom: (json['nom'] ?? '').toString(),
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'nom': nom,
-      if (description != null) 'description': description,
-    };
+  factory CategorieDemande.fromDemande({
+    required int id,
+    required String nom,
+  }) {
+    return CategorieDemande(id: id, nom: nom);
   }
 }

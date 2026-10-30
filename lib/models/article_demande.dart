@@ -57,4 +57,3 @@ class ArticleDemande {
         'prixUnitaireEstime': prixUnitaireEstime ?? 0,
       };
 }
-

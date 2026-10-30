@@ -31,9 +31,13 @@ class ConnexionController extends ChangeNotifier {
         motDePasse: motDePasse,
       );
 
+      final utilisateur = resultat!.utilisateur;
+
       debugPrint('Connexion réussie !');
-      debugPrint('Utilisateur : ${resultat?.utilisateur.telephone}');
-      debugPrint('Rôle : ${resultat?.utilisateur.role}');
+      debugPrint('Utilisateur : ${utilisateur.telephone}');
+      debugPrint('Prénom : ${utilisateur.prenom}');
+      debugPrint('Nom : ${utilisateur.nom}');
+      debugPrint('Rôle : ${utilisateur.role}');
 
       return true;
     } catch (e, stackTrace) {

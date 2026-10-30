@@ -1,3 +1,5 @@
+import '../repositories/demande_aide_donateur_repository.dart' as donateur_repo;
+import '../models/demande_aide.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -435,3 +437,31 @@ final demandeAideFormControllerProvider =
   ref.onDispose(controller.dispose);
   return controller;
 });
+
+
+
+final demandeAideControllerProvider =
+    AsyncNotifierProvider<DemandeAideController, List<DemandeAide>>(
+  DemandeAideController.new,
+);
+
+class DemandeAideController extends AsyncNotifier<List<DemandeAide>> {
+  @override
+  Future<List<DemandeAide>> build() async {
+    return _chargerDemandes();
+  }
+
+  Future<List<DemandeAide>> _chargerDemandes() async {
+    final repository = ref.read(donateur_repo.demandeAideRepositoryProvider);
+    final demandes = await repository.getDemandesDisponibles();
+
+    return demandes
+        .where((demande) => demande.statut == 'VALIDEE')
+        .toList();
+  }
+
+  Future<void> actualiser() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(_chargerDemandes);
+  }
+}
