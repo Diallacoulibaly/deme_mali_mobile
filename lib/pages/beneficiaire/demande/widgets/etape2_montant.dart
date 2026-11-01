@@ -3,6 +3,66 @@ import 'package:flutter/services.dart';
 
 import '../../../../styles/couleurs.dart';
 
+/// Formatteur pour ajouter automatiquement des espaces entre les milliers (ex: 50 000)
+class _SeparateurMilliersFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text.isEmpty) {
+      return newValue;
+    }
+
+    // Extraire uniquement les chiffres
+    final digits = newValue.text.replaceAll(RegExp(r'\D'), '');
+    if (digits.isEmpty) {
+      return const TextEditingValue(
+        text: '',
+        selection: TextSelection.collapsed(offset: 0),
+      );
+    }
+
+    // Supprimer les zéros non significatifs au début (ex: 05 -> 5, sauf si 0 seul)
+    final nombre = int.tryParse(digits) ?? 0;
+    final digitsNettoyes = nombre == 0 ? '0' : nombre.toString();
+
+    // Compter combien de chiffres étaient avant le curseur dans newValue
+    int nbChiffresAvantCurseur = 0;
+    final selectionEnd = newValue.selection.end.clamp(0, newValue.text.length);
+    for (int i = 0; i < selectionEnd; i++) {
+      if (RegExp(r'\d').hasMatch(newValue.text[i])) {
+        nbChiffresAvantCurseur++;
+      }
+    }
+
+    // Formater avec séparateur de milliers
+    final regex = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
+    final texteFormate =
+        digitsNettoyes.replaceAllMapped(regex, (m) => '${m[1]} ');
+
+    // Repositionner le curseur après le nombre correspondant de chiffres
+    int nouvelOffset = 0;
+    int chiffresComptes = 0;
+    for (int i = 0; i < texteFormate.length; i++) {
+      if (chiffresComptes >= nbChiffresAvantCurseur) {
+        break;
+      }
+      if (RegExp(r'\d').hasMatch(texteFormate[i])) {
+        chiffresComptes++;
+      }
+      nouvelOffset = i + 1;
+    }
+
+    return TextEditingValue(
+      text: texteFormate,
+      selection: TextSelection.collapsed(
+        offset: nouvelOffset.clamp(0, texteFormate.length),
+      ),
+    );
+  }
+}
+
 class Etape2Montant extends StatefulWidget {
   const Etape2Montant({
     super.key,
@@ -20,15 +80,19 @@ class Etape2Montant extends StatefulWidget {
 }
 
 class _Etape2MontantState extends State<Etape2Montant> {
-  String _formaterMontant(String brut) {
-    final sansEspaces = brut.replaceAll(RegExp(r'\D'), '');
-    if (sansEspaces.isEmpty) return '0 FCFA';
-    final nombre = int.tryParse(sansEspaces) ?? 0;
-    if (nombre == 0) return '0 FCFA';
-    final regex = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
-    final formate =
-        nombre.toString().replaceAllMapped(regex, (m) => '${m[1]} ');
-    return '$formate FCFA';
+  @override
+  void initState() {
+    super.initState();
+    // Si une valeur numérique existe déjà, la formater proprement
+    final texteInitial = widget.montantController.text.replaceAll(RegExp(r'\D'), '');
+    if (texteInitial.isNotEmpty) {
+      final nombre = int.tryParse(texteInitial) ?? 0;
+      if (nombre > 0) {
+        final regex = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
+        widget.montantController.text =
+            nombre.toString().replaceAllMapped(regex, (m) => '${m[1]} ');
+      }
+    }
   }
 
   @override
@@ -77,90 +141,51 @@ class _Etape2MontantState extends State<Etape2Montant> {
 
               const SizedBox(height: 18),
 
-              // Cadre avec bordure verte et affichage interactif du montant "0 FCFA"
-              ValueListenableBuilder<TextEditingValue>(
-                valueListenable: widget.montantController,
-                builder: (context, value, _) {
-                  final texteAffiche = _formaterMontant(value.text);
-                  return Container(
-                    width: double.infinity,
-                    height: 70,
-                    decoration: BoxDecoration(
-                      color: CouleursApp.blanc,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: CouleursApp.vert, width: 1.5),
-                    ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Texte formaté toujours centré et auto-adaptatif sans débordement
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              texteAffiche,
-                              maxLines: 1,
-                              style: TextStyle(
-                                fontSize: texteAffiche.length > 15 ? 24 : 30,
-                                fontWeight: FontWeight.w900,
-                                color: CouleursApp.noir,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ),
-                        ),
-                        // Champ de saisie invisible superposé pour recevoir les frappes
-                        Positioned.fill(
-                          child: TextField(
-                            controller: widget.montantController,
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(14),
-                            ],
-                            cursorColor: CouleursApp.vert,
-                            style: const TextStyle(color: Colors.transparent),
-                            decoration: const InputDecoration(
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 18),
-
-              // Note explicative
+              // Cadre avec bordure verte et champ de saisie direct, cliquable et modifiable
               Container(
-                padding: const EdgeInsets.all(12),
+                width: double.infinity,
                 decoration: BoxDecoration(
-                  color: CouleursApp.vert.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(12),
+                  color: CouleursApp.blanc,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: CouleursApp.vert, width: 1.5),
                 ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.info_outline_rounded,
-                      color: CouleursApp.vert,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Ce montant servira d\'objectif pour votre demande et sera visible par les donateurs.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.black.withValues(alpha: 0.65),
-                          height: 1.3,
-                        ),
-                      ),
-                    ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                child: TextField(
+                  controller: widget.montantController,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  cursorColor: CouleursApp.vert,
+                  enableInteractiveSelection: true,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    color: CouleursApp.noir,
+                    letterSpacing: 0.5,
+                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(12),
+                    _SeparateurMilliersFormatter(),
                   ],
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                    hintText: '0',
+                    hintStyle: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.black.withValues(alpha: 0.25),
+                      letterSpacing: 0.5,
+                    ),
+                    suffixText: ' FCFA',
+                    suffixStyle: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: CouleursApp.noir,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
                 ),
               ),
             ],

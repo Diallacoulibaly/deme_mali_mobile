@@ -8,6 +8,16 @@ const String messageCompteCree =
     'Compte créé avec succès. Connectez-vous avec votre numéro '
     'et votre mot de passe.';
 
+const String messageCompteParticulierEnAttente =
+    'Inscription enregistrée. Votre compte est en attente de validation '
+    'par l''organisation partenaire. Vous pourrez vous connecter dès '
+    'que l''organisation aura validé votre dossier.';
+
+const String messageCompteStructureEnAttente =
+    'Inscription enregistrée. Votre compte est en attente de validation '
+    'par l''administrateur. Vous pourrez vous connecter dès '
+    'que l''administrateur aura validé votre structure.';
+
 const String messageCompteEnAttente =
     'Inscription enregistrée. Votre compte est en attente de validation '
     'par l’administrateur. Vous pourrez vous connecter une '

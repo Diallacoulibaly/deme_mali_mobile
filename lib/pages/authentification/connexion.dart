@@ -53,11 +53,101 @@ class _ConnexionPageState extends State<ConnexionPage> {
     if (!mounted) return;
 
     if (!succes) {
+      final messageErreur = controller.erreur ?? 'Erreur de connexion.';
+      final lowerMsg = messageErreur.toLowerCase();
+
+      if (lowerMsg.contains('attente') || lowerMsg.contains('validation')) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Row(
+              children: const [
+                Icon(Icons.hourglass_top_rounded, color: Color(0xFFD97706)),
+                SizedBox(width: 8),
+                Text('Compte en attente'),
+              ],
+            ),
+            content: Text(
+              messageErreur,
+              style: const TextStyle(fontSize: 14, height: 1.4),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text(
+                  'Compris',
+                  style: TextStyle(
+                    color: CouleursApp.vert,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
+      if (lowerMsg.contains('refusé') || lowerMsg.contains('refuse')) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Row(
+              children: const [
+                Icon(Icons.cancel_outlined, color: Colors.red),
+                SizedBox(width: 8),
+                Text('Compte refusé'),
+              ],
+            ),
+            content: Text(
+              messageErreur,
+              style: const TextStyle(fontSize: 14, height: 1.4),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text(
+                  'Fermer',
+                  style: TextStyle(
+                    color: CouleursApp.vert,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            controller.erreur ?? 'Erreur de connexion.',
+          content: Row(
+            children: [
+              const Icon(Icons.info_outline, color: Colors.white, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  messageErreur,
+                  style: const TextStyle(fontSize: 13.5, height: 1.3),
+                ),
+              ),
+            ],
           ),
+          backgroundColor: const Color(0xFF2C3E50),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          duration: const Duration(seconds: 5),
         ),
       );
       return;
