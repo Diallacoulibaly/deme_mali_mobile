@@ -89,7 +89,7 @@ class _InformationsStructureEtape3PageState
       return;
     }
 
-    redirigerVersConnexion(context, message: messageCompteEnAttente);
+    redirigerVersConnexion(context, message: messageCompteStructureEnAttente);
   }
 
   @override

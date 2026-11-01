@@ -16,7 +16,7 @@ class ReponseConnexion {
     return ReponseConnexion(
       accessToken: json['accessToken'] as String,
       utilisateur: Utilisateur.fromJson(
-        json['user'] as Map<String, dynamic>,
+        (json['user'] ?? json['utilisateur']) as Map<String, dynamic>,
       ),
     );
   }
