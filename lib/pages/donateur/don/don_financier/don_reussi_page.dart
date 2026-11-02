@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 import '/styles/couleurs.dart';
-import 'package:deme_mali_mobile/pages/donateur/accueil_donateur.dart';
+import 'package:deme_mali_mobile/pages/navigation_donateur_page.dart';
 class DonReussiPage extends StatelessWidget {
   final double montant;
   final String modePaiement;
@@ -170,7 +170,7 @@ class DonReussiPage extends StatelessWidget {
                   onPressed: () {
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(
-                        builder: (context) => AccueilDonateurPage(
+                        builder: (context) => NavigationDonateurPage(
                           prenom: prenom,
                           donateurId: donateurId,
                         ),

@@ -25,13 +25,11 @@ class DetailOrganisationPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F3EA),
 
-      // PAS D'APPBAR : PAS DE TITRE NI DE FLÈCHE
-
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // PARTIE FIXE : IDENTITÉ DE L'ORGANISATION
+            // EN-TÊTE DE L'ORGANISATION
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: EnteteOrganisationWidget(
@@ -41,7 +39,7 @@ class DetailOrganisationPage extends ConsumerWidget {
 
             const SizedBox(height: 16),
 
-            // PARTIE FIXE : À PROPOS
+            // À PROPOS
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: AProposOrganisationWidget(
@@ -49,9 +47,50 @@ class DetailOrganisationPage extends ConsumerWidget {
               ),
             ),
 
+            const SizedBox(height: 16),
+
+            // BOUTON SOUTENIR L'ORGANISATION
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FaireUnDonPage(
+                          donateurId: donateurId,
+                          organisationPartenaireId: organisation.id,
+                          prenom: prenom,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.favorite_outline),
+                  label: const Text(
+                    'Soutenir cette organisation',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0F7A4B),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
             const SizedBox(height: 20),
 
-            // PARTIE FIXE : TITRE
+            // TITRE DES AIDES DISTRIBUÉES
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
               child: Text(
@@ -66,7 +105,7 @@ class DetailOrganisationPage extends ConsumerWidget {
 
             const SizedBox(height: 12),
 
-            // SEULE CETTE PARTIE EST DÉFILANTE
+            // LISTE DES AIDES DISTRIBUÉES
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -76,58 +115,6 @@ class DetailOrganisationPage extends ConsumerWidget {
               ),
             ),
           ],
-        ),
-      ),
-
-      // BOUTON FIXE EN BAS
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF7F3EA),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 10,
-                offset: const Offset(0, -3),
-              ),
-            ],
-          ),
-          child: SizedBox(
-            width: double.infinity,
-            height: 54,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => FaireUnDonPage(
-                      donateurId: donateurId,
-                      organisationPartenaireId: organisation.id,
-                      prenom: prenom,
-                    ),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.volunteer_activism),
-              label: const Text(
-                'Soutenir cette organisation',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0F7A4B),
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-            ),
-          ),
         ),
       ),
     );

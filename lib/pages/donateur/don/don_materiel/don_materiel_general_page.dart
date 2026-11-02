@@ -4,9 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '/controllers/don_materiel_controller.dart';
+import '/controllers/rapport_technique_controller.dart';
 import '/models/don_materiel.dart';
+import '/models/detail_rapport_technique.dart';
 import '/styles/couleurs.dart';
-import 'package:deme_mali_mobile/pages/donateur/accueil_donateur.dart';
+import 'package:deme_mali_mobile/pages/navigation_donateur_page.dart';
 
 class DonMaterielGeneralPage extends ConsumerStatefulWidget {
   final int donateurId;
@@ -47,7 +49,6 @@ class _DonMaterielGeneralPageState
     'Pièce',
     'Litre',
     'Paquet',
-    'Autre',
   ];
 
   final Map<String, String> _etats = {
@@ -64,12 +65,125 @@ class _DonMaterielGeneralPageState
     super.dispose();
   }
 
+  // Afficher un message d'erreur.
+  void _afficherErreur(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red.shade700,
+        duration: const Duration(seconds: 5),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  // Vérifier les informations du don avec le rapport technique.
+  Future<String?> _verifierBesoinDemande() async {
+    // Si le don n'est pas associé à une demande,
+    // on conserve le fonctionnement actuel.
+    if (widget.demandeAideId == null) {
+      return null;
+    }
+
+    final designation = _designationController.text.trim();
+    final unite = _unite.trim();
+    final quantite = int.tryParse(_quantiteController.text.trim());
+
+    // La quantité doit être positive.
+    if (quantite == null || quantite <= 0) {
+      return 'La quantité doit être supérieure à zéro.';
+    }
+
+    // Charger le rapport technique.
+    final rapport = await ref.read(
+      rapportTechniqueProvider(widget.demandeAideId!).future,
+    );
+
+    if (rapport == null || rapport.details.isEmpty) {
+      return 'Aucun besoin disponible dans le rapport technique.';
+    }
+
+    // Rechercher la désignation et l'unité dans le rapport.
+    DetailRapportTechnique? detailTrouve;
+
+    for (final detail in rapport.details) {
+      if (detail.designation.trim().toLowerCase() ==
+          designation.toLowerCase() &&
+          detail.unite.trim().toLowerCase() == unite.toLowerCase()) {
+        detailTrouve = detail;
+        break;
+      }
+    }
+
+    // La désignation et l'unité doivent correspondre.
+    if (detailTrouve == null) {
+      return 'Cet article ne figure pas parmi les besoins de cette demande. '
+          'Veuillez vérifier la désignation et l’unité.';
+    }
+
+    final detail = detailTrouve;
+
+    // Récupérer les dons matériels associés à la demande.
+    final dons = await ref.read(
+      donMaterielControllerProvider(widget.demandeAideId!).future,
+    );
+
+    // Calculer les quantités déjà réellement reçues.
+    final quantiteDejaRecue = dons
+        .where((don) {
+      final memeDesignation =
+          don.designation.trim().toLowerCase() ==
+              detail.designation.trim().toLowerCase();
+
+      final memeUnite =
+          don.unite.trim().toLowerCase() ==
+              detail.unite.trim().toLowerCase();
+
+      final statut = don.statutReception.trim().toUpperCase();
+
+      return memeDesignation &&
+          memeUnite &&
+          (statut == 'RECU' || statut == 'PARTIELLEMENT_RECU');
+    })
+        .fold<int>(
+      0,
+          (total, don) => total + don.quantiteRecue,
+    );
+
+    // Calculer la quantité restante.
+    final quantiteRestante = detail.quantite - quantiteDejaRecue;
+
+    if (quantiteRestante <= 0) {
+      return 'Ce besoin est déjà entièrement satisfait. '
+          'Aucune quantité supplémentaire n’est nécessaire.';
+    }
+
+    // Vérifier que la quantité saisie ne dépasse pas le besoin restant.
+    if (quantite > quantiteRestante) {
+      return 'La quantité saisie dépasse le besoin restant. '
+          'Vous pouvez encore donner $quantiteRestante ${detail.unite} maximum.';
+    }
+
+    return null;
+  }
+
   Future<void> _envoyerDon() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _chargement = true);
 
     try {
+      // Vérifications avant l'enregistrement.
+      final erreurBesoin = await _verifierBesoinDemande();
+
+      if (!mounted) return;
+
+      if (erreurBesoin != null) {
+        _afficherErreur(erreurBesoin);
+        return;
+      }
+
+      // Logique initiale de création du don : conservée.
       final controller = ref.read(creationDonMaterielProvider);
 
       final DonMateriel don = await controller.creer(
@@ -88,16 +202,14 @@ class _DonMaterielGeneralPageState
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Don enregistré avec succès. Référence : ${don.id}',
-          ),
+          content: const Text('Don enregistré avec succès'),
           backgroundColor: CouleursApp.vert,
         ),
       );
 
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
-          builder: (context) => AccueilDonateurPage(
+          builder: (context) => NavigationDonateurPage(
             prenom: widget.prenom,
             donateurId: widget.donateurId,
           ),
@@ -107,11 +219,11 @@ class _DonMaterielGeneralPageState
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Impossible d’enregistrer le don : $e'),
-          backgroundColor: CouleursApp.noir,
-        ),
+      debugPrint('Erreur lors de la création du don matériel : $e');
+
+      _afficherErreur(
+        'Une erreur est survenue. Impossible de vérifier ou '
+            'd’enregistrer votre don.',
       );
     } finally {
       if (mounted) {
@@ -276,7 +388,7 @@ class _DonMaterielGeneralPageState
 
                       const SizedBox(height: 19),
 
-                      // État du matériel (facultatif)
+                      // État du matériel
                       _label('État du matériel'),
 
                       DropdownButtonFormField<String>(
@@ -315,7 +427,7 @@ class _DonMaterielGeneralPageState
 
                       const SizedBox(height: 22),
 
-                      // Don anonyme : disposition verticale sans Row
+                      // Don anonyme
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(
@@ -326,9 +438,8 @@ class _DonMaterielGeneralPageState
                           color: CouleursApp.fond,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Checkbox(
                               value: _anonyme,
@@ -349,26 +460,17 @@ class _DonMaterielGeneralPageState
                               visualDensity: VisualDensity.compact,
                             ),
 
-                            const SizedBox(height: 4),
+                            const SizedBox(width: 8),
 
-                            const Text(
-                              'Faire un don anonyme',
-                              softWrap: true,
-                              style: TextStyle(
-                                color: CouleursApp.noir,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-
-                            const SizedBox(height: 3),
-
-                            const Text(
-                              'Votre identité ne sera pas affichée.',
-                              softWrap: true,
-                              style: TextStyle(
-                                color: Colors.black54,
-                                fontSize: 11,
+                            const Expanded(
+                              child: Text(
+                                'Faire un don anonyme',
+                                softWrap: true,
+                                style: TextStyle(
+                                  color: CouleursApp.noir,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ],

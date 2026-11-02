@@ -117,27 +117,34 @@ class _DetailDemandePageState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Image de la demande
+                  // Image de la demande
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child: SizedBox(
                       width: double.infinity,
                       height: 190,
                       child: imagesAsync.when(
+                        skipLoadingOnReload: true,
                         data: (images) {
-                          if (images.isNotEmpty &&
-                              images.first.cheminFichier.isNotEmpty) {
-                            return Image.network(
-                              images.first.cheminFichier,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) =>
-                                  _imageParDefaut(),
-                            );
+                          if (images.isEmpty ||
+                              images.first.urlImage.isEmpty) {
+                            return _aucuneImage();
                           }
 
-                          return _imageParDefaut();
+                          return Image.network(
+                            images.first.urlImage,
+                            width: double.infinity,
+                            height: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _aucuneImage(),
+                            loadingBuilder: (context, child, progression) {
+                              if (progression == null) return child;
+                              return _chargementImage();
+                            },
+                          );
                         },
-                        loading: _imageParDefaut,
-                        error: (_, __) => _imageParDefaut(),
+                        loading: () => _chargementImage(),
+                        error: (_, __) => _aucuneImage(),
                       ),
                     ),
                   ),
@@ -365,14 +372,47 @@ class _DetailDemandePageState
   }
 
   // Image par défaut
-  Widget _imageParDefaut() {
+  // Message quand il n'y a pas d'image
+  Widget _aucuneImage() {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      color: CouleursApp.fond,
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.image_not_supported_outlined,
+            color: CouleursApp.vert,
+            size: 40,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Aucune image illustrative',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: CouleursApp.noir.withValues(alpha: 0.65),
+              fontSize: 13,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Pendant le chargement de l'image
+  Widget _chargementImage() {
     return Container(
       color: CouleursApp.fond,
       alignment: Alignment.center,
-      child: const Icon(
-        Icons.volunteer_activism_outlined,
-        color: CouleursApp.vert,
-        size: 48,
+      child: const SizedBox(
+        width: 24,
+        height: 24,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: CouleursApp.vert,
+        ),
       ),
     );
   }
