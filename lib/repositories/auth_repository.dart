@@ -91,13 +91,34 @@ class AuthRepository {
       );
 
       if (reponse.statusCode == 403 || reponse.statusCode == 401) {
-        throw Exception('Numero de telephone ou mot de passe incorrect.');
+        try {
+          final donneesErreur = jsonDecode(reponse.body);
+          if (donneesErreur is Map && donneesErreur['message'] != null) {
+            final msg = donneesErreur['message'].toString().trim();
+            if (msg.isNotEmpty && !msg.toLowerCase().contains('bad credentials')) {
+              throw Exception(msg);
+            }
+          }
+        } catch (e) {
+          if (e is Exception && !e.toString().toLowerCase().contains('bad credentials')) {
+            rethrow;
+          }
+        }
+        throw Exception('Numéro de téléphone ou mot de passe incorrect.');
       }
 
       if (reponse.statusCode != 200) {
-        throw Exception(
-          'Erreur serveur (${reponse.statusCode}) : ${reponse.body}',
-        );
+        String msg = 'Erreur serveur (${reponse.statusCode})';
+        try {
+          final donneesErreur = jsonDecode(reponse.body);
+          if (donneesErreur is Map && donneesErreur['message'] != null) {
+            final extrait = donneesErreur['message'].toString().trim();
+            if (extrait.isNotEmpty) {
+              msg = extrait;
+            }
+          }
+        } catch (_) {}
+        throw Exception(msg);
       }
 
       // Lire la reponse du backend

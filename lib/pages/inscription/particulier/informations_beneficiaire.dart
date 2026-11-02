@@ -89,7 +89,7 @@ class _InformationsBeneficiairePageState
       return;
     }
 
-    redirigerVersConnexion(context, message: messageCompteEnAttente);
+    redirigerVersConnexion(context, message: messageCompteParticulierEnAttente);
   }
 
   @override

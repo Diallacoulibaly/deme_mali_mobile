@@ -62,9 +62,9 @@ class InscriptionParticulierController extends ChangeNotifier {
           genre: personnel.genre,
         ),
         organisationPartenaireId: organisationPartenaireId,
-        situationMatrimonial: situationsMatrimoniales[situationMatrimoniale]!,
+        situationMatrimonial: situationsMatrimoniales[situationMatrimoniale] ?? situationMatrimoniale,
         nombreEnfants: nombreEnfants,
-        typeHandicap: handicaps[handicap]!,
+        typeHandicap: handicaps[handicap] ?? handicap,
         descriptionSituation: description,
         dateNaissance: date,
       );

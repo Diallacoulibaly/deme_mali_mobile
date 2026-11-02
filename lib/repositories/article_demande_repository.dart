@@ -3,9 +3,10 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import '../models/article_demande.dart';
+import 'auth_repository.dart';
 
 class ArticleDemandeRepository {
-  static const String baseUrl = 'http://10.0.2.2:8080/api';
+  static const String baseUrl = '${AuthRepository.baseUrl}/api';
 
   // Récupérer les articles initiaux d'une demande.
   Future<List<ArticleDemande>> getArticles(int demandeId) async {
