@@ -24,7 +24,7 @@ class OrganisationRepository {
 
     final reponse = await http
         .get(
-          Uri.parse('$baseUrl/api/organisations-partenaires'),
+Uri.parse('$baseUrl/organisations-partenaires'),
           headers: {'Accept': 'application/json'},
         )
         .timeout(

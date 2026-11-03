@@ -20,7 +20,7 @@ class AuthRepository {
     required String telephone,
     required String motDePasse,
   }) async {
-    final url = Uri.parse('$baseUrl/api/auth/login');
+final url = Uri.parse('$baseUrl/auth/login');
     final chrono = Stopwatch()..start();
 
     // Normaliser le numéro : supprimer tous les espaces

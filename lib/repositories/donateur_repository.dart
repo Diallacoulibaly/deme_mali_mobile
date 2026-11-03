@@ -113,7 +113,7 @@ class DonateurRepository {
 
     final reponse = await http
         .post(
-          Uri.parse('$effectiveBaseUrl/api/donateurs'),
+          Uri.parse('$effectiveBaseUrl/donateurs'),
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',

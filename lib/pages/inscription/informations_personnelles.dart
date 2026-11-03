@@ -137,7 +137,6 @@ class _InformationsPersonnellesPageState
                       titre: 'Prenom',
                       indication: 'Entrez votre prenom',
                       controller: prenomController,
-                      icone: Icons.mail_outline,
                       onChanged: _actualiser,
                     ),
                     const SizedBox(height: 18),

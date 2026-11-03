@@ -50,7 +50,7 @@ class ParticulierRepository {
     print('>>> ENVOI INSCRIPTION PARTICULIER : $payloadStr');
 
     final reponse = await http.post(
-      Uri.parse('$baseUrl/api/beneficiaires/particuliers'),
+Uri.parse('$baseUrl/beneficiaires/particuliers'),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
