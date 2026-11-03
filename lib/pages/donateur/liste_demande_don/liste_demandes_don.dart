@@ -14,10 +14,15 @@ import '../don/don_financier/don_financier_page.dart';
 
 class ListeDemandesDonPage extends ConsumerStatefulWidget {
   final int donateurId;
+  final int? organisationPartenaireId;
+  final String prenom;
+
 
   const ListeDemandesDonPage({
     super.key,
     required this.donateurId,
+    this.organisationPartenaireId,
+    required this.prenom
   });
 
   @override
@@ -67,8 +72,11 @@ class _ListeDemandesDonPageState
         context,
         MaterialPageRoute(
           builder: (_) => DonFinancierPage(
+            prenom: widget.prenom,
             donateurId: widget.donateurId,
             demandeAideId: demande.id,
+            organisationPartenaireId:
+            widget.organisationPartenaireId,
           ),
         ),
       );
@@ -79,6 +87,8 @@ class _ListeDemandesDonPageState
           builder: (_) => FaireUnDonPage(
             donateurId: widget.donateurId,
             demandeAideId: demande.id,
+            organisationPartenaireId: widget.organisationPartenaireId,
+            prenom: widget.prenom,
           ),
         ),
       );
@@ -320,6 +330,11 @@ class _ListeDemandesDonPageState
                                 builder: (_) =>
                                     DetailDemandePage(
                                       demande: demande,
+                                      donateurId: widget.donateurId,
+                                      prenom: widget.prenom,
+                                      organisationPartenaireId:
+                                      widget.organisationPartenaireId,
+
                                     ),
                               ),
                             );

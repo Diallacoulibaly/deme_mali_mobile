@@ -18,6 +18,7 @@ class OrganisationPartenaire {
   final String? telephoneOrganisation;
   final int nombreLikes;
   final bool aimeParMoi;
+  final String? description;
 
   OrganisationPartenaire({
     required this.id,
@@ -38,10 +39,10 @@ class OrganisationPartenaire {
     this.telephoneOrganisation,
     this.nombreLikes = 0,
     this.aimeParMoi = false,
+    this.description,
   });
 
   String get type => typeOrganisation;
-  String? get description => null;
 
   String get typeLibelle {
     switch (typeOrganisation.toUpperCase()) {
@@ -78,6 +79,7 @@ class OrganisationPartenaire {
       telephoneOrganisation: json['telephoneOrganisation'] as String?,
       nombreLikes: (json['nombreLikes'] as num?)?.toInt() ?? 0,
       aimeParMoi: json['aimeParMoi'] as bool? ?? false,
+      description: json['description'] as String?,
     );
   }
 
@@ -101,6 +103,7 @@ class OrganisationPartenaire {
       'telephoneOrganisation': telephoneOrganisation,
       'nombreLikes': nombreLikes,
       'aimeParMoi': aimeParMoi,
+      'description': description,
     };
   }
 
@@ -127,6 +130,7 @@ class OrganisationPartenaire {
       telephoneOrganisation: telephoneOrganisation,
       nombreLikes: nombreLikes ?? this.nombreLikes,
       aimeParMoi: aimeParMoi ?? this.aimeParMoi,
+      description: description ?? this.description,
     );
   }
 }

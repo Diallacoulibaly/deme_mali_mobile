@@ -14,76 +14,49 @@ class AProposOrganisationWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final informations = <MapEntry<String, String>>[
-      MapEntry('Ville', organisation.ville),
-      if ((organisation.adresse ?? '').trim().isNotEmpty)
-        MapEntry('Adresse', organisation.adresse!.trim()),
-      if ((organisation.email ?? '').trim().isNotEmpty)
-        MapEntry('E-mail', organisation.email!.trim()),
-      if ((organisation.telephoneOrganisation ?? '').trim().isNotEmpty)
-        MapEntry(
-          'Téléphone',
-          organisation.telephoneOrganisation!.trim(),
-        ),
-    ];
+    final description = organisation.description?.trim() ?? '';
 
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: CouleursApp.blanc,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: CouleursApp.vert.withValues(alpha: 0.15),
-        ),
-      ),
+    return SizedBox(
+      width: double.infinity,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // TITRE À PROPOS
           const Text(
-            'À propos de l’organisation',
+            'À propos',
             style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: CouleursApp.noir,
+            ),
+          ),
+
+          const SizedBox(height: 5),
+
+          // PETIT TRAIT VERT SOUS LE TITRE
+          Container(
+            width: 78,
+            height: 3,
+            decoration: BoxDecoration(
               color: CouleursApp.vert,
+              borderRadius: BorderRadius.circular(10),
             ),
           ),
-          const SizedBox(height: 8),
+
+          const SizedBox(height: 12),
+
+          // DESCRIPTION
           Text(
-            'Informations disponibles sur cette organisation partenaire.',
+            description.isNotEmpty
+                ? description
+                : 'Aucune description disponible pour cette organisation.',
+            textAlign: TextAlign.start,
             style: TextStyle(
-              fontSize: 14,
-              height: 1.4,
-              color: CouleursApp.noir.withValues(alpha: 0.75),
-            ),
-          ),
-          const SizedBox(height: 14),
-          ...informations.map(
-                (information) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      information.key,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: CouleursApp.noir,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 3,
-                    child: Text(
-                      information.value,
-                      style: TextStyle(
-                        color: CouleursApp.noir.withValues(alpha: 0.75),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              fontSize: 13,
+              height: 1.6,
+              color: description.isNotEmpty
+                  ? CouleursApp.noir.withValues(alpha: 0.70)
+                  : CouleursApp.noir.withValues(alpha: 0.45),
             ),
           ),
         ],
