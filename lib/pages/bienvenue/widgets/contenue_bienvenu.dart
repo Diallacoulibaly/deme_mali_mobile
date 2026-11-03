@@ -10,14 +10,14 @@ class ContenuBienvenue extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 25),
+        const SizedBox(height: 10),
 
         // LOGO
         Center(
           child: Image.asset(
             'assets/images/logo_acceuil.png',
-            width: 115,
-            height: 115,
+            width: 95,
+            height: 95,
             fit: BoxFit.contain,
             errorBuilder: (context, error, stackTrace) => Image.asset(
               'assets/images/logo_Acceuil.png',
@@ -75,7 +75,7 @@ class ContenuBienvenue extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(height: 35),
+        const SizedBox(height: 20),
 
         // TITRE
         const Text(
@@ -88,7 +88,7 @@ class ContenuBienvenue extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(height: 22),
+        const SizedBox(height: 10),
 
         // DESCRIPTION
         const Text(

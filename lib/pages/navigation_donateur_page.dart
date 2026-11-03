@@ -48,16 +48,13 @@ class _NavigationDonateurPageState
           ),
         ],
       ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: BarreNavigation(
-          indexSelectionne: indexSelectionne,
-          onTap: (index) {
-            setState(() {
-              indexSelectionne = index;
-            });
-          },
-        ),
+      bottomNavigationBar: BarreNavigation(
+        indexSelectionne: indexSelectionne,
+        onTap: (index) {
+          setState(() {
+            indexSelectionne = index;
+          });
+        },
       ),
     );
   }

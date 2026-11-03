@@ -37,7 +37,7 @@ class BoutonsBienvenue extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(height: 17),
+        const SizedBox(height: 12),
 
         // BOUTON SE CONNECTER
         SizedBox(

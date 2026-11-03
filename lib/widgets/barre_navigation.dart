@@ -23,7 +23,7 @@ class BarreNavigation extends StatelessWidget {
       height: 65,
       color: vert,
       buttonBackgroundColor: blanc,
-      backgroundColor: beige,
+      backgroundColor: Colors.transparent,
       animationCurve: Curves.easeInOut,
       animationDuration: const Duration(milliseconds: 300),
 

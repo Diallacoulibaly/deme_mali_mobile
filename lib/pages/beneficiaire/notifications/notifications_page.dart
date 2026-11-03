@@ -18,7 +18,12 @@ class NotificationsPage extends ConsumerStatefulWidget {
 class _NotificationsPageState extends ConsumerState<NotificationsPage> {
   String filtreActif = 'Toutes';
 
-  static const List<String> filtres = ['Toutes', 'Dons reçus', 'Demandes'];
+  static const List<String> filtres = [
+    'Toutes',
+    'Dons reçus',
+    'Demandes',
+    'Distributions',
+  ];
 
   List<NotificationItem> _filtrer(List<NotificationItem> liste) {
     if (filtreActif == 'Dons reçus') {
@@ -34,23 +39,204 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
           )
           .toList();
     }
+    if (filtreActif == 'Distributions') {
+      return liste
+          .where(
+            (n) =>
+                n.type == TypeNotification.distributionEffectuee ||
+                n.type == TypeNotification.distributionPrevue,
+          )
+          .toList();
+    }
     return liste;
   }
 
-  void _ouvrirDemande(NotificationItem notif, List<DemandeAide> demandes) {
+  Future<void> _ouvrirDemande(
+    NotificationItem notif,
+    List<DemandeAide> demandes,
+  ) async {
     ref.read(notificationsNotifierProvider.notifier).marquerCommeLue(notif.id);
 
-    if (notif.demandeId == null) return;
+    if (notif.demandeId == null) {
+      _afficherDetailModal(notif);
+      return;
+    }
 
-    final correspondance = demandes.where((d) => d.id == notif.demandeId).firstOrNull;
-    if (correspondance != null) {
+    DemandeAide? correspondance =
+        demandes.where((d) => d.id == notif.demandeId).firstOrNull;
+
+    if (correspondance == null) {
+      try {
+        final repo = ref.read(demandeAideRepositoryProvider);
+        correspondance = await repo.getById(notif.demandeId!);
+      } catch (e) {
+        debugPrint('Erreur lors du chargement de la demande : $e');
+      }
+    }
+
+    if (correspondance != null && mounted) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => DetailAidePage(demande: correspondance),
+          builder: (_) => DetailAidePage(demande: correspondance!),
         ),
       );
+    } else if (mounted) {
+      _afficherDetailModal(notif);
     }
+  }
+
+  void _afficherDetailModal(NotificationItem notif) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.fromLTRB(22, 16, 22, 28),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: notif.couleur.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(notif.icone, color: notif.couleur, size: 24),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        notif.titre,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: CouleursApp.noir,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        notif.dateFormatee,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF888888),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              notif.message,
+              style: const TextStyle(
+                fontSize: 14,
+                height: 1.45,
+                color: Color(0xFF333333),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: CouleursApp.noir,
+                      side: const BorderSide(color: Color(0xFFDDDDDD)),
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Fermer',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+                if (notif.type == TypeNotification.compteValide) ...[
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        Navigator.pop(context);
+                        ref
+                            .read(ongletActifBeneficiaireProvider.notifier)
+                            .state = 3; // Onglet Profil
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: CouleursApp.vert,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Voir mon profil',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+                if (notif.type == TypeNotification.distributionEffectuee ||
+                    notif.type == TypeNotification.distributionPrevue) ...[
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        Navigator.pop(context);
+                        ref
+                            .read(ongletActifBeneficiaireProvider.notifier)
+                            .state = 2; // Onglet Mes dons reçus
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: CouleursApp.vert,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Mes dons reçus',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -131,8 +317,9 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
 
             const SizedBox(height: 6),
 
-            // 2. Onglets de filtrage rapide
-            Padding(
+            // 2. Onglets de filtrage avec défilement horizontal (anti-débordement)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: filtres.map((f) {
@@ -151,6 +338,15 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                               n.type == TypeNotification.demandeValidee ||
                               n.type == TypeNotification.demandeRefusee ||
                               n.type == TypeNotification.objectifAtteint,
+                        )
+                        .length;
+                  }
+                  if (f == 'Distributions') {
+                    compte = state.notifications
+                        .where(
+                          (n) =>
+                              n.type == TypeNotification.distributionEffectuee ||
+                              n.type == TypeNotification.distributionPrevue,
                         )
                         .length;
                   }
@@ -176,7 +372,9 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                           boxShadow: actif
                               ? [
                                   BoxShadow(
-                                    color: CouleursApp.vert.withValues(alpha: 0.22),
+                                    color: CouleursApp.vert.withValues(
+                                      alpha: 0.22,
+                                    ),
                                     blurRadius: 6,
                                     offset: const Offset(0, 2),
                                   ),
@@ -184,14 +382,14 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                               : null,
                         ),
                         child: Text(
-                          compte != null && compte > 0
-                              ? '$f ($compte)'
-                              : f,
+                          compte != null && compte > 0 ? '$f ($compte)' : f,
                           style: TextStyle(
                             fontSize: 11.5,
                             fontWeight:
                                 actif ? FontWeight.w700 : FontWeight.w600,
-                            color: actif ? Colors.white : const Color(0xFF555555),
+                            color: actif
+                                ? Colors.white
+                                : const Color(0xFF555555),
                           ),
                         ),
                       ),
@@ -274,7 +472,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
             const SizedBox(height: 8),
             const Text(
               'Les notifications concernant vos dons reçus, la validation '
-              'de vos demandes et les distributions s’afficheront ici.',
+              'de vos demandes, de votre compte et les distributions s’afficheront ici.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
@@ -414,6 +612,25 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                               Icons.chevron_right,
                               size: 14,
                               color: CouleursApp.vert,
+                            ),
+                          ],
+                        )
+                      else
+                        const Row(
+                          children: [
+                            Text(
+                              'Détails',
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF777777),
+                              ),
+                            ),
+                            SizedBox(width: 2),
+                            Icon(
+                              Icons.chevron_right,
+                              size: 14,
+                              color: Color(0xFF777777),
                             ),
                           ],
                         ),

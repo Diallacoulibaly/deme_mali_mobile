@@ -22,19 +22,19 @@ class WidgetMessageAide extends StatelessWidget {
           ),
         ),
 
-        SizedBox(height: 18),
+        SizedBox(height: 10),
 
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 5),
+          padding: EdgeInsets.symmetric(horizontal: 2),
           child: Text(
             'Dèmè Mali met en relation les '
                 'personnes en difficulté avec les aides '
-                'dont elles ont réellement besoin',
+                'dont elles ont réellement besoin.',
             textAlign: TextAlign.left,
             style: TextStyle(
               color: CouleursApp.noir,
-              fontSize: 10,
-              height: 1.4,
+              fontSize: 13.5,
+              height: 1.35,
             ),
           ),
         ),

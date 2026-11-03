@@ -39,12 +39,14 @@ class _PresentationPageState extends State<PresentationPage> {
               // Logo et nom Dèmè Mali.
               const WidgetLogo(),
 
-              const SizedBox(height: 30),
+              const SizedBox(height: 16),
 
-              // Contenu de la deuxième présentation.
+              // Contenu de la deuxième présentation centré et bien espacé
               const Expanded(
-                child: SingleChildScrollView(
-                  child: WidgetPresentation(),
+                child: Center(
+                  child: SingleChildScrollView(
+                    child: WidgetPresentation(),
+                  ),
                 ),
               ),
 

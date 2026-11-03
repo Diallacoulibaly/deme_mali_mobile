@@ -1,7 +1,7 @@
-
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/image_demande.dart';
@@ -9,11 +9,27 @@ import 'auth_repository.dart';
 
 class ImageDemandeRepository {
   static const String baseUrl = '${AuthRepository.baseUrl}/api';
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
+  Future<Map<String, String>> _headers() async {
+    final headers = <String, String>{
+      'Accept': 'application/json',
+    };
+    try {
+      final token = await _storage.read(key: 'accessToken');
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+    } catch (_) {}
+    return headers;
+  }
 
   // Récupérer les images associées à une demande.
   Future<List<ImageDemande>> getImagesDemande(int demandeId) async {
+    final headers = await _headers();
     final response = await http.get(
       Uri.parse('$baseUrl/images-demandes/demande/$demandeId'),
+      headers: headers,
     );
 
     if (response.statusCode != 200) {
@@ -38,8 +54,10 @@ class ImageDemandeRepository {
 
   // Récupérer une image par son identifiant.
   Future<ImageDemande> getImageById(int id) async {
+    final headers = await _headers();
     final response = await http.get(
       Uri.parse('$baseUrl/images-demandes/$id'),
+      headers: headers,
     );
 
     if (response.statusCode != 200) {
@@ -48,9 +66,15 @@ class ImageDemandeRepository {
       );
     }
 
-    return ImageDemande.fromJson(
-      jsonDecode(response.body) as Map<String, dynamic>,
-    );
+    final dynamic decoded = jsonDecode(response.body);
+
+    if (decoded is! Map<String, dynamic>) {
+      throw const FormatException(
+        'La réponse doit être un objet JSON.',
+      );
+    }
+
+    return ImageDemande.fromJson(decoded);
   }
 }
 
@@ -60,7 +84,7 @@ Provider<ImageDemandeRepository>((ref) {
   return ImageDemandeRepository();
 });
 
-// Provider pour charger les images d'une demande.
+// Provider pour charger les images d'une demande précise.
 final imagesDemandeProvider =
 FutureProvider.family<List<ImageDemande>, int>((ref, demandeId) {
   return ref
@@ -68,8 +92,8 @@ FutureProvider.family<List<ImageDemande>, int>((ref, demandeId) {
       .getImagesDemande(demandeId);
 });
 
-// Provider pour charger une image par son identifiant.
-final imageDemandeDetailProvider =
+// Provider pour charger une image précise par son identifiant.
+final imageDetailProvider =
 FutureProvider.family<ImageDemande, int>((ref, id) {
   return ref
       .watch(imageDemandeRepositoryProvider)

@@ -1,17 +1,33 @@
-
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import '../models/article_demande.dart';
 import 'auth_repository.dart';
 
 class ArticleDemandeRepository {
   static const String baseUrl = '${AuthRepository.baseUrl}/api';
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
+  Future<Map<String, String>> _headers() async {
+    final headers = <String, String>{
+      'Accept': 'application/json',
+    };
+    try {
+      final token = await _storage.read(key: 'accessToken');
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+    } catch (_) {}
+    return headers;
+  }
 
   // Récupérer les articles initiaux d'une demande.
   Future<List<ArticleDemande>> getArticles(int demandeId) async {
+    final headers = await _headers();
     final response = await http.get(
       Uri.parse('$baseUrl/articles-demande/demande/$demandeId'),
+      headers: headers,
     );
 
     if (response.statusCode != 200) {

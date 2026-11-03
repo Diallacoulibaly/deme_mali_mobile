@@ -137,7 +137,7 @@ class _EcranLancementState extends State<EcranLancement>
     final tailleEcran = MediaQuery.of(context).size;
     final zoneSureHaut = MediaQuery.of(context).padding.top;
 
-    final double positionDepart = tailleEcran.height * 0.25;
+    final double positionDepart = tailleEcran.height * 0.30;
     final double positionFinale = zoneSureHaut + 12;
 
     return Scaffold(
@@ -153,10 +153,10 @@ class _EcranLancementState extends State<EcranLancement>
             ),
           ),
 
-          // Nom de l'application
+          // Nom de l'application positionné juste sous le logo pour un ensemble cohérent
           if (nomVisible)
             Positioned(
-              top: tailleEcran.height * 0.43,
+              top: positionDepart + 96,
               left: 0,
               right: 0,
               child: Center(
