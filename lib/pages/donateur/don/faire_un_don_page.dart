@@ -8,13 +8,14 @@ class FaireUnDonPage extends StatelessWidget {
   final int donateurId;
   final int? demandeAideId;
   final int? organisationPartenaireId;
-
+  final String prenom;
 
   const FaireUnDonPage({
     super.key,
     required this.donateurId,
     this.demandeAideId,
-    this.organisationPartenaireId
+    this.organisationPartenaireId,
+    required this.prenom,
   });
 
   @override
@@ -88,9 +89,9 @@ class FaireUnDonPage extends StatelessWidget {
                         builder: (context) => DonFinancierPage(
                           donateurId: donateurId,
                           demandeAideId: demandeAideId,
-                          organisationPartenaireId: organisationPartenaireId,
-
-
+                          organisationPartenaireId:
+                          organisationPartenaireId,
+                          prenom: prenom,
                         ),
                       ),
                     );
@@ -114,8 +115,10 @@ class FaireUnDonPage extends StatelessWidget {
                       MaterialPageRoute(
                         builder: (context) => DonMaterielGeneralPage(
                           donateurId: donateurId,
-                          organisationPartenaireId: organisationPartenaireId,
+                          organisationPartenaireId:
+                          organisationPartenaireId,
                           demandeAideId: demandeAideId,
+                          prenom: prenom,
                         ),
                       ),
                     );

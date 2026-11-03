@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,11 +12,15 @@ import '../don/don_financier/don_financier_page.dart';
 class ListeDemandesDon extends ConsumerWidget {
   final int? categorieSelectionneeId;
   final int donateurId;
+  final int? organisationPartenaireId;
+  final String prenom;
 
   const ListeDemandesDon({
     super.key,
     this.categorieSelectionneeId,
     required this.donateurId,
+    this.organisationPartenaireId,
+    required this.prenom,
   });
 
   @override
@@ -28,6 +33,7 @@ class ListeDemandesDon extends ConsumerWidget {
           color: CouleursApp.vert,
         ),
       ),
+
       error: (error, stackTrace) => ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(24),
@@ -62,6 +68,7 @@ class ListeDemandesDon extends ConsumerWidget {
           ),
         ],
       ),
+
       data: (demandes) {
         final demandesFiltrees = categorieSelectionneeId == null
             ? demandes
@@ -117,6 +124,10 @@ class ListeDemandesDon extends ConsumerWidget {
                     MaterialPageRoute(
                       builder: (context) => DetailDemandePage(
                         demande: demande,
+                        donateurId: donateurId,
+                        organisationPartenaireId:
+                        organisationPartenaireId,
+                        prenom: prenom,
                         onFaireDon: () {
                           Navigator.pop(context);
                           _ouvrirChoixDon(context, demande);
@@ -141,6 +152,8 @@ class ListeDemandesDon extends ConsumerWidget {
           builder: (context) => DonFinancierPage(
             donateurId: donateurId,
             demandeAideId: demande.id,
+            organisationPartenaireId: organisationPartenaireId,
+            prenom: prenom,
           ),
         ),
       );
@@ -151,6 +164,8 @@ class ListeDemandesDon extends ConsumerWidget {
           builder: (context) => FaireUnDonPage(
             donateurId: donateurId,
             demandeAideId: demande.id,
+            organisationPartenaireId: organisationPartenaireId,
+            prenom: prenom,
           ),
         ),
       );

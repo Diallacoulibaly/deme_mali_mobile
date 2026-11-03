@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +14,7 @@ class InformationsPaiementPage extends ConsumerStatefulWidget {
   final int donateurId;
   final int? demandeAideId;
   final int? organisationPartenaireId;
+  final String prenom;
 
   const InformationsPaiementPage({
     super.key,
@@ -21,7 +23,8 @@ class InformationsPaiementPage extends ConsumerStatefulWidget {
     required this.modePaiement,
     required this.donateurId,
     this.demandeAideId,
-    this.organisationPartenaireId
+    this.organisationPartenaireId,
+    required this.prenom,
   });
 
   @override
@@ -53,7 +56,6 @@ class _InformationsPaiementPageState
         return 'Wave';
       case 'MOVE_MONEY':
         return 'Moov Money';
-
       default:
         return widget.modePaiement;
     }
@@ -81,7 +83,8 @@ class _InformationsPaiementPageState
         modePaiement: widget.modePaiement,
         anonyme: widget.anonyme,
         demandeAideId: widget.demandeAideId,
-          organisationPartenaireId:widget.organisationPartenaireId,
+        organisationPartenaireId:
+        widget.organisationPartenaireId,
       );
 
       if (!mounted) return;
@@ -93,6 +96,8 @@ class _InformationsPaiementPageState
             builder: (context) => DonReussiPage(
               montant: widget.montant,
               modePaiement: _nomModePaiement,
+              prenom: widget.prenom,
+              donateurId: widget.donateurId,
             ),
           ),
         );
@@ -142,7 +147,7 @@ class _InformationsPaiementPageState
       backgroundColor: CouleursApp.fond,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(12, 6, 12, 14),
+          padding: const EdgeInsets.fromLTRB(22, 12, 22, 24),
           child: Form(
             key: _formKey,
             child: Column(
@@ -151,18 +156,27 @@ class _InformationsPaiementPageState
                 // En-tête
                 Row(
                   children: [
-                    IconButton(
-                      onPressed: _chargement
-                          ? null
-                          : () => Navigator.pop(context),
-                      icon: const Icon(Icons.arrow_back),
-                      style: IconButton.styleFrom(
-                        backgroundColor: CouleursApp.blanc,
-                        foregroundColor: CouleursApp.noir,
-                        padding: const EdgeInsets.all(6),
-                        minimumSize: const Size(40, 40),
-                        tapTargetSize:
-                        MaterialTapTargetSize.shrinkWrap,
+                    Container(
+                      decoration: BoxDecoration(
+                        color: CouleursApp.blanc,
+                        borderRadius: BorderRadius.circular(13),
+                        border: Border.all(
+                          color: Colors.black.withValues(alpha: 0.05),
+                        ),
+                      ),
+                      child: IconButton(
+                        onPressed: _chargement
+                            ? null
+                            : () => Navigator.pop(context),
+                        icon: const Icon(
+                          Icons.arrow_back_rounded,
+                          size: 21,
+                        ),
+                        color: CouleursApp.noir,
+                        constraints: const BoxConstraints(
+                          minWidth: 44,
+                          minHeight: 44,
+                        ),
                       ),
                     ),
                     const Expanded(
@@ -171,108 +185,34 @@ class _InformationsPaiementPageState
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: CouleursApp.noir,
-                          fontSize: 23,
+                          fontSize: 21,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 40),
+                    const SizedBox(width: 44),
                   ],
                 ),
 
-                const SizedBox(height: 14),
+                const SizedBox(height: 20),
 
-                const Center(
-                  child: Text(
-                    'Renseignez vos informations de paiement',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: CouleursApp.noir,
-                      fontSize: 13,
-                      height: 1.4,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Récapitulatif du don
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: CouleursApp.blanc,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: CouleursApp.fond,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: CouleursApp.fond,
-                          borderRadius: BorderRadius.circular(9),
-                        ),
-                        child: const Icon(
-                          Icons.account_balance_wallet_outlined,
-                          color: CouleursApp.vert,
-                          size: 21,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment:
-                          CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _nomModePaiement,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: CouleursApp.noir,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 3),
-                            Text(
-                              '${widget.montant.toStringAsFixed(0)} FCFA',
-                              style: const TextStyle(
-                                color: CouleursApp.vert,
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(
-                        Icons.check_circle,
-                        color: CouleursApp.vert,
-                        size: 19,
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Numéro de téléphone
+                // Explication directement sous le titre Paiement
                 const Text(
-                  'Numéro de téléphone',
+                  'Finalisez votre paiement',
+                  textAlign: TextAlign.start,
                   style: TextStyle(
                     color: CouleursApp.noir,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                    height: 1,
                   ),
                 ),
 
-                const SizedBox(height: 5),
+                const SizedBox(height: 30),
+
+                // Numéro de téléphone
+                _labelChamp('Numéro de téléphone'),
+
+                const SizedBox(height: 9),
 
                 TextFormField(
                   controller: _telephoneController,
@@ -283,9 +223,11 @@ class _InformationsPaiementPageState
                   ],
                   style: const TextStyle(
                     color: CouleursApp.noir,
+                    fontSize: 14,
                   ),
                   decoration: _decoration(
                     label: 'Entrez votre numéro',
+                    prefixIcon: Icons.phone_android_rounded,
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -303,19 +245,12 @@ class _InformationsPaiementPageState
                   },
                 ),
 
-                const SizedBox(height: 12),
+                const SizedBox(height: 25),
 
                 // Code PIN
-                const Text(
-                  'Code PIN ',
-                  style: TextStyle(
-                    color: CouleursApp.noir,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                _labelChamp('Code PIN'),
 
-                const SizedBox(height: 5),
+                const SizedBox(height: 9),
 
                 TextFormField(
                   controller: _pinController,
@@ -326,15 +261,18 @@ class _InformationsPaiementPageState
                   ],
                   style: const TextStyle(
                     color: CouleursApp.noir,
+                    fontSize: 14,
+                    letterSpacing: 3,
                   ),
                   decoration: _decoration(
                     label: 'Entrez votre code PIN',
+                    prefixIcon: Icons.lock_outline_rounded,
                   ).copyWith(
                     suffixIcon: IconButton(
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(
-                        minWidth: 36,
-                        minHeight: 36,
+                        minWidth: 42,
+                        minHeight: 42,
                       ),
                       onPressed: () {
                         setState(() {
@@ -343,40 +281,28 @@ class _InformationsPaiementPageState
                       },
                       icon: Icon(
                         _pinVisible
-                            ? Icons.visibility_off
-                            : Icons.visibility,
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
                         color: CouleursApp.vert,
-                        size: 19,
+                        size: 20,
                       ),
                     ),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Le code de test est obligatoire.';
+                      return 'Le code PIN est obligatoire.';
                     }
 
                     return null;
                   },
                 ),
 
-                const SizedBox(height: 7),
-
-                const Text(
-                  'Utilisez uniquement le code prévu pour la simulation '
-                      'de paiement de votre application.',
-                  style: TextStyle(
-                    color: CouleursApp.noir,
-                    fontSize: 11,
-                    height: 1.4,
-                  ),
-                ),
-
-                const SizedBox(height: 18),
+                const SizedBox(height: 35),
 
                 // Bouton de confirmation
                 SizedBox(
                   width: double.infinity,
-                  height: 46,
+                  height: 52,
                   child: ElevatedButton(
                     onPressed: _chargement
                         ? null
@@ -387,11 +313,8 @@ class _InformationsPaiementPageState
                       disabledBackgroundColor: CouleursApp.vert,
                       disabledForegroundColor: CouleursApp.blanc,
                       elevation: 0,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                      ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
+                        borderRadius: BorderRadius.circular(15),
                       ),
                     ),
                     child: _chargement
@@ -403,30 +326,13 @@ class _InformationsPaiementPageState
                         strokeWidth: 2,
                       ),
                     )
-                        : const FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        'Confirmer le paiement',
-                        style: TextStyle(
-                          color: CouleursApp.blanc,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        : const Text(
+                      'Confirmer le paiement',
+                      style: TextStyle(
+                        color: CouleursApp.blanc,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
                       ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 6),
-
-                // Accent jaune de la charte
-                Center(
-                  child: Container(
-                    width: 34,
-                    height: 3,
-                    decoration: BoxDecoration(
-                      color: CouleursApp.jaune,
-                      borderRadius: BorderRadius.circular(3),
                     ),
                   ),
                 ),
@@ -438,57 +344,75 @@ class _InformationsPaiementPageState
     );
   }
 
+  // Libellé des champs
+  Widget _labelChamp(String texte) {
+    return Text(
+      texte,
+      style: const TextStyle(
+        color: CouleursApp.noir,
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+
   // Style commun des champs
   InputDecoration _decoration({
     required String label,
+    required IconData prefixIcon,
   }) {
     return InputDecoration(
       hintText: label,
       hintStyle: const TextStyle(
-        color: CouleursApp.noir,
+        color: Colors.black38,
         fontSize: 13,
       ),
       errorStyle: const TextStyle(
-        color: CouleursApp.noir,
+        color: Colors.redAccent,
         fontSize: 11,
+      ),
+      prefixIcon: Icon(
+        prefixIcon,
+        color: CouleursApp.vert,
+        size: 20,
       ),
       filled: true,
       fillColor: CouleursApp.blanc,
       isDense: true,
       contentPadding: const EdgeInsets.symmetric(
-        horizontal: 11,
-        vertical: 12,
+        horizontal: 14,
+        vertical: 16,
       ),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: CouleursApp.fond,
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(
+          color: Colors.black.withValues(alpha: 0.08),
         ),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: CouleursApp.fond,
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(
+          color: Colors.black.withValues(alpha: 0.08),
         ),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(
           color: CouleursApp.vert,
-          width: 1.5,
+          width: 1.4,
         ),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(
-          color: CouleursApp.noir,
+          color: Colors.redAccent,
         ),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(
-          color: CouleursApp.noir,
-          width: 1.5,
+          color: Colors.redAccent,
+          width: 1.2,
         ),
       ),
     );

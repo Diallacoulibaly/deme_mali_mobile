@@ -9,6 +9,8 @@ import '../../../models/demande_aide.dart';
 import '../../../models/don_materiel.dart';
 import '../../../models/rapport_technique.dart';
 import '../../../styles/couleurs.dart';
+import '../../../models/image_demande.dart';
+
 
 class CarteDemandeDon extends ConsumerWidget {
   final DemandeAide demande;
@@ -220,25 +222,30 @@ class CarteDemandeDon extends ConsumerWidget {
   }
 
   // IMAGE DE LA DEMANDE
+  // IMAGE DE LA DEMANDE
   Widget _construireImage(
-      AsyncValue<List<dynamic>> imagesAsync,
+      AsyncValue<List<ImageDemande>> imagesAsync,
       ) {
     return imagesAsync.when(
       data: (images) {
-        if (images.isEmpty || images.first.cheminFichier.isEmpty) {
-          return _imageParDefaut();
+        if (images.isEmpty || images.first.urlImage.isEmpty) {
+          return _aucuneImage();
         }
 
         return Image.network(
-          images.first.cheminFichier,
+          images.first.urlImage,
           width: double.infinity,
           height: double.infinity,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => _imageParDefaut(),
+          fit: BoxFit.cover,errorBuilder: (_, _, _) => _aucuneImage(),
+          loadingBuilder: (context, child, progression) {
+            if (progression == null) return child;
+            return _chargementImage();
+          },
         );
+
       },
-      loading: () => _imageParDefaut(),
-      error: (_, _) => _imageParDefaut(),
+      loading: () => _chargementImage(),
+      error: (_, _) => _aucuneImage(),
     );
   }
 
@@ -304,27 +311,51 @@ class CarteDemandeDon extends ConsumerWidget {
   }
 
   // IMAGE PAR DÉFAUT
-  Widget _imageParDefaut() {
+  // MESSAGE QUAND IL N'Y A PAS D'IMAGE
+  Widget _aucuneImage() {
     return Container(
       width: double.infinity,
+      height: double.infinity,
       color: CouleursApp.fond,
+      padding: const EdgeInsets.all(8),
       alignment: Alignment.center,
-      child: Image.asset(
-        'assets/images/accueil.png',
-        width: double.infinity,
-        height: double.infinity,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return const Icon(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
             Icons.image_not_supported_outlined,
             color: CouleursApp.vert,
-            size: 36,
-          );
-        },
+            size: 28,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Aucune image illustrative',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: CouleursApp.noir.withValues(alpha: 0.65),
+              fontSize: 11,
+            ),
+          ),
+        ],
       ),
     );
   }
 
+  // PENDANT LE CHARGEMENT DE L'IMAGE
+  Widget _chargementImage() {
+    return Container(
+      color: CouleursApp.fond,
+      alignment: Alignment.center,
+      child: const SizedBox(
+        width: 22,
+        height: 22,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: CouleursApp.vert,
+        ),
+      ),
+    );
+  }
   // PROGRESSION DES DEMANDES FINANCIÈRES
   Widget _progressionFinanciere(
       AsyncValue<RapportTechnique?> rapportAsync,
@@ -341,9 +372,7 @@ class CarteDemandeDon extends ConsumerWidget {
           objectif: objectif,
         );
       },
-      loading: () => const LinearProgressIndicator(
-        color: CouleursApp.vert,
-      ),
+      loading: () => const SizedBox.shrink(),
       error: (_, _) => const Text(
         'Impossible de charger le rapport technique.',
         style: TextStyle(fontSize: 11),
@@ -681,9 +710,7 @@ class CarteDemandeDon extends ConsumerWidget {
           ],
         );
       },
-      loading: () => const LinearProgressIndicator(
-        color: CouleursApp.vert,
-      ),
+      loading: () => const SizedBox.shrink(),
       error: (_, _) => Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

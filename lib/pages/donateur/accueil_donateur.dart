@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,7 +11,6 @@ import 'widgets/banniere_don_general.dart';
 import 'widgets/titre_demandes.dart';
 import 'widgets/filtres_categories.dart';
 import 'widgets/liste_demandes_don.dart';
-import 'liste_demande_don/liste_demandes_don.dart';
 
 class AccueilDonateurPage extends ConsumerStatefulWidget {
   final String prenom;
@@ -77,6 +77,7 @@ class _AccueilDonateurPageState
 
             BanniereDonGeneral(
               donateurId: widget.donateurId,
+              prenom: widget.prenom,
             ),
 
             TitreDemandes(
@@ -84,8 +85,9 @@ class _AccueilDonateurPageState
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => ListeDemandesDonPage(
+                    builder: (_) => ListeDemandesDon(
                       donateurId: widget.donateurId,
+                      prenom: widget.prenom,
                     ),
                   ),
                 );
@@ -114,6 +116,7 @@ class _AccueilDonateurPageState
                 },
                 child: ListeDemandesDon(
                   donateurId: widget.donateurId,
+                  prenom: widget.prenom,
                   categorieSelectionneeId: categorieSelectionneeId,
                 ),
               ),

@@ -13,42 +13,48 @@ class DetailOrganisationPage extends ConsumerWidget {
     super.key,
     required this.organisation,
     required this.donateurId,
+    required this.prenom,
   });
 
   final OrganisationPartenaire organisation;
   final int donateurId;
+  final String prenom;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F3EA),
-      appBar: AppBar(
-        title: const Text('Détail de l’organisation'),
-        backgroundColor: const Color(0xFF0F7A4B),
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
+
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              EnteteOrganisationWidget(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // EN-TÊTE DE L'ORGANISATION
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: EnteteOrganisationWidget(
                 organisation: organisation,
               ),
+            ),
 
-              const SizedBox(height: 16),
+            const SizedBox(height: 16),
 
-              AProposOrganisationWidget(
+            // À PROPOS
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: AProposOrganisationWidget(
                 organisation: organisation,
               ),
+            ),
 
-              const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
-              SizedBox(
+            // BOUTON SOUTENIR L'ORGANISATION
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SizedBox(
                 width: double.infinity,
-                height: 52,
+                height: 54,
                 child: ElevatedButton.icon(
                   onPressed: () {
                     Navigator.push(
@@ -57,11 +63,12 @@ class DetailOrganisationPage extends ConsumerWidget {
                         builder: (context) => FaireUnDonPage(
                           donateurId: donateurId,
                           organisationPartenaireId: organisation.id,
+                          prenom: prenom,
                         ),
                       ),
                     );
                   },
-                  icon: const Icon(Icons.volunteer_activism),
+                  icon: const Icon(Icons.favorite_outline),
                   label: const Text(
                     'Soutenir cette organisation',
                     style: TextStyle(
@@ -74,15 +81,19 @@ class DetailOrganisationPage extends ConsumerWidget {
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                   ),
                 ),
               ),
+            ),
 
-              const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-              const Text(
+            // TITRE DES AIDES DISTRIBUÉES
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
                 'Aides distribuées',
                 style: TextStyle(
                   fontSize: 20,
@@ -90,14 +101,20 @@ class DetailOrganisationPage extends ConsumerWidget {
                   color: Color(0xFF0F7A4B),
                 ),
               ),
+            ),
 
-              const SizedBox(height: 12),
+            const SizedBox(height: 12),
 
-              ListeAidesDistribueesWidget(
-                organisationId: organisation.id,
+            // LISTE DES AIDES DISTRIBUÉES
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: ListeAidesDistribueesWidget(
+                  organisationId: organisation.id,
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

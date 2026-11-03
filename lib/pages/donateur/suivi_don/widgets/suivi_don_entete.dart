@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import 'package:deme_mali_mobile/styles/couleurs.dart';
@@ -38,12 +37,6 @@ class SuiviDonEntete extends StatelessWidget {
 
     final statut = financier ? null : donMateriel!.statutReception;
 
-    final demandeAideId = financier
-        ? donFinancier!.demandeAideId
-        : donMateriel!.demandeAideId;
-
-    final donGeneral = demandeAideId == null;
-
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -54,11 +47,13 @@ class SuiviDonEntete extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // En-tête
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: CouleursApp.vert.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(14),
@@ -71,29 +66,16 @@ class SuiviDonEntete extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
+
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      titre,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                        color: CouleursApp.noir,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      donGeneral
-                          ? 'Don général'
-                          : 'Don lié à une demande',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  titre,
+                  softWrap: true,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: CouleursApp.noir,
+                  ),
                 ),
               ),
             ],
@@ -101,8 +83,10 @@ class SuiviDonEntete extends StatelessWidget {
 
           const SizedBox(height: 14),
 
+          // Montant ou quantité
           Text(
             montantOuQuantite,
+            softWrap: true,
             style: const TextStyle(
               fontSize: 23,
               fontWeight: FontWeight.bold,
@@ -114,6 +98,7 @@ class SuiviDonEntete extends StatelessWidget {
             const SizedBox(height: 5),
             Text(
               'Date du don : ${_formaterDate(dateDon)}',
+              softWrap: true,
               style: const TextStyle(color: Colors.black54),
             ),
           ],
@@ -122,6 +107,7 @@ class SuiviDonEntete extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               'Paiement : $modePaiement',
+              softWrap: true,
               style: const TextStyle(color: Colors.black54),
             ),
           ],
@@ -130,14 +116,7 @@ class SuiviDonEntete extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               'Réception : ${_formaterStatut(statut)}',
-              style: const TextStyle(color: Colors.black54),
-            ),
-          ],
-
-          if (demandeAideId != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              'Demande associée : #$demandeAideId',
+              softWrap: true,
               style: const TextStyle(color: Colors.black54),
             ),
           ],

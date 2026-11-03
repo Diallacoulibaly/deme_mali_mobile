@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 import '../widgets/barre_navigation.dart';
@@ -36,12 +37,16 @@ class _NavigationDonateurPageState
             prenom: widget.prenom,
             donateurId: widget.donateurId,
           ),
+
           OrganisationPage(
             donateurId: widget.donateurId,
+            prenom: widget.prenom,
           ),
+
           MesDonsPage(
             donateurId: widget.donateurId,
           ),
+
           ProfilDonateurPage(
             donateurId: widget.donateurId,
             nomDonateur: widget.prenom,

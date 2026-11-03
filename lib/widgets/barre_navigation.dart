@@ -33,7 +33,7 @@ class BarreNavigation extends StatelessWidget {
             indexSelectionne == 0 ? Icons.home_rounded : Icons.home_outlined,
             color: indexSelectionne == 0 ? vert : blanc,
           ),
-          label: 'Accueil',
+          label: 'Home',
           labelStyle: const TextStyle(
             color: blanc,
             fontSize: 11,

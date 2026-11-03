@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -29,6 +28,7 @@ class ListeAidesDistribueesWidget extends ConsumerWidget {
           ),
         ),
       ),
+
       error: (error, stackTrace) => Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -44,6 +44,7 @@ class ListeAidesDistribueesWidget extends ConsumerWidget {
           ),
         ),
       ),
+
       data: (aides) {
         if (aides.isEmpty) {
           return Container(
@@ -53,6 +54,7 @@ class ListeAidesDistribueesWidget extends ConsumerWidget {
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
                   Icons.volunteer_activism_outlined,
@@ -63,20 +65,27 @@ class ListeAidesDistribueesWidget extends ConsumerWidget {
                 Text(
                   'Aucune aide distribuée pour le moment.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: CouleursApp.noir),
+                  style: TextStyle(
+                    color: CouleursApp.noir,
+                  ),
                 ),
               ],
             ),
           );
         }
 
-        return Column(
-          children: [
-            for (final aide in aides) ...[
-              CarteAideDistribueeWidget(aide: aide),
-              const SizedBox(height: 14),
-            ],
-          ],
+        return ListView.separated(
+          padding: const EdgeInsets.only(bottom: 14),
+          itemCount: aides.length,
+          separatorBuilder: (context, index) =>
+          const SizedBox(height: 14),
+          itemBuilder: (context, index) {
+            final aide = aides[index];
+
+            return CarteAideDistribueeWidget(
+              aide: aide,
+            );
+          },
         );
       },
     );

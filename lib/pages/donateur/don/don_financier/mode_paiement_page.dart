@@ -9,8 +9,8 @@ class ModePaiementPage extends StatefulWidget {
   final bool anonyme;
   final int donateurId;
   final int? demandeAideId;
-   final int? organisationPartenaireId;
-
+  final int? organisationPartenaireId;
+  final String prenom;
 
   const ModePaiementPage({
     super.key,
@@ -18,7 +18,8 @@ class ModePaiementPage extends StatefulWidget {
     required this.anonyme,
     required this.donateurId,
     this.demandeAideId,
-    this.organisationPartenaireId
+    this.organisationPartenaireId,
+    required this.prenom,
   });
 
   @override
@@ -33,18 +34,19 @@ class _ModePaiementPageState extends State<ModePaiementPage> {
     {
       'nom': 'Orange Money',
       'valeur': 'ORANGE_MONEY',
-      'icone': Icons.account_balance_wallet_outlined,
+      'image': 'assets/images/orange_money.png',
       'couleur': Colors.deepOrange,
     },
     {
       'nom': 'Wave',
       'valeur': 'WAVE',
-      'icone': Icons.water_drop_outlined,
+      'image': 'assets/images/wave.png',
       'couleur': Colors.lightBlue,
-    },{
+    },
+    {
       'nom': 'Moov Money',
       'valeur': 'MOVE_MONEY',
-      'icone': Icons.account_balance_wallet_outlined,
+      'image': 'assets/images/moov_money.png',
       'couleur': Colors.orange,
     },
   ];
@@ -66,8 +68,9 @@ class _ModePaiementPageState extends State<ModePaiementPage> {
           modePaiement: _modePaiement,
           donateurId: widget.donateurId,
           demandeAideId: widget.demandeAideId,
-            organisationPartenaireId:widget.organisationPartenaireId,
-
+          organisationPartenaireId:
+          widget.organisationPartenaireId,
+          prenom: widget.prenom,
         ),
       ),
     );
@@ -165,36 +168,6 @@ class _ModePaiementPageState extends State<ModePaiementPage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-
-                    const SizedBox(height: 14),
-
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.person_outline,
-                          color: CouleursApp.vert,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        const Expanded(
-                          child: Text(
-                            'Type de don',
-                            style: TextStyle(
-                              color: CouleursApp.noir,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          widget.anonyme ? 'Anonyme' : 'Public',
-                          style: const TextStyle(
-                            color: CouleursApp.noir,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),
@@ -235,7 +208,7 @@ class _ModePaiementPageState extends State<ModePaiementPage> {
                         });
                       },
                       child: Container(
-                        height: 70,
+                        height: 76,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 14,
                         ),
@@ -251,20 +224,30 @@ class _ModePaiementPageState extends State<ModePaiementPage> {
                         ),
                         child: Row(
                           children: [
+                            // Logo du moyen de paiement
                             Container(
-                              width: 40,
-                              height: 40,
+                              width: 48,
+                              height: 48,
+                              padding: const EdgeInsets.all(5),
                               decoration: BoxDecoration(
-                                color: couleur.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(10),
+                                color: couleur.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Icon(
-                                mode['icone'] as IconData,
-                                color: couleur,
-                                size: 24,
+                              child: Image.asset(
+                                mode['image'] as String,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Icon(
+                                    Icons.image_not_supported_outlined,
+                                    color: couleur,
+                                    size: 24,
+                                  );
+                                },
                               ),
                             ),
+
                             const SizedBox(width: 14),
+
                             Expanded(
                               child: Text(
                                 mode['nom'] as String,
@@ -275,6 +258,7 @@ class _ModePaiementPageState extends State<ModePaiementPage> {
                                 ),
                               ),
                             ),
+
                             Icon(
                               selectionne
                                   ? Icons.radio_button_checked

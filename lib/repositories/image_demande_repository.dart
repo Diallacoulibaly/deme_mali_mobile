@@ -6,6 +6,8 @@ import 'package:http/http.dart' as http;
 
 import '../models/image_demande.dart';
 import 'auth_repository.dart';
+import 'package:flutter/foundation.dart';
+
 
 class ImageDemandeRepository {
   static const String baseUrl = '${AuthRepository.baseUrl}/api';
@@ -15,6 +17,8 @@ class ImageDemandeRepository {
     final response = await http.get(
       Uri.parse('$baseUrl/images-demandes/demande/$demandeId'),
     );
+
+    debugPrint('IMAGES demande $demandeId : ${response.statusCode} ${response.body}');
 
     if (response.statusCode != 200) {
       throw Exception(
