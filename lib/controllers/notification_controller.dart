@@ -63,11 +63,15 @@ class NotificationNotifier extends Notifier<NotificationState> {
     try {
       final telephone = await repository.stockage.read(key: 'userTelephone') ?? '';
       final userIdStr = await repository.stockage.read(key: 'userId');
+      final role = (await repository.stockage.read(key: 'userRole') ?? '').toUpperCase();
       final userId = userIdStr != null ? int.tryParse(userIdStr) : null;
+
+      final estDonateur = role == 'DONATEUR';
 
       final liste = await repository.chargerToutesNotifications(
         telephone: telephone,
-        beneficiaireId: userId,
+        beneficiaireId: estDonateur ? null : userId,
+        donateurId: estDonateur ? userId : null,
       );
 
       state = state.copyWith(notifications: liste, chargement: false);

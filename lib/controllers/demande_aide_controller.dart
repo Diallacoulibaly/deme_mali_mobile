@@ -21,6 +21,59 @@ class DemandeAideFormController extends ChangeNotifier {
   // 1. État de la navigation entre les 3 étapes
   int etape = 1;
 
+  // Identifiant de la demande si on est en mode édition
+  int? demandeIdAModifier;
+  int? organisationPartenaireIdAModifier;
+  bool get estModification => demandeIdAModifier != null;
+
+  void preparerPourModification(DemandeAide demande) {
+    demandeIdAModifier = demande.id;
+    organisationPartenaireIdAModifier = demande.organisationPartenaireId;
+    titre = demande.titre;
+    description = demande.descriptionSituation;
+
+    final u = demande.niveauUrgence.toUpperCase();
+    if (u.contains('FAIBLE')) {
+      urgence = 'Faible';
+    } else if (u.contains('MOYEN')) {
+      urgence = 'Moyenne';
+    } else {
+      urgence = 'Urgente';
+    }
+
+    final t = (demande.typeDemande ?? '').toUpperCase();
+    typeAide = t.contains('COLLECTIF') ? 'Collective' : 'Individuelle';
+    nombrePersonne = demande.nombrePersonne ?? (typeAide == 'Collective' ? 2 : 1);
+
+    final bool materielle = demande.articles.isNotEmpty || (demande.typeDemandeAide?.toUpperCase() == 'MATERIELLE');
+    typeDemandeAide = materielle ? 'MATERIELLE' : 'FINANCIERE';
+    montant = demande.montantNecessaire ?? demande.montantTotalRequis;
+
+    articles = List<ArticleDemande>.from(demande.articles);
+    categorieIdSelectionnee = demande.categorieDemandeId;
+
+    etape = 1;
+    notifyListeners();
+  }
+
+  void reinitialiser() {
+    demandeIdAModifier = null;
+    organisationPartenaireIdAModifier = null;
+    etape = 1;
+    titre = '';
+    typeAide = 'Individuelle';
+    nombrePersonne = 1;
+    description = '';
+    urgence = 'Urgente';
+    montant = 0;
+    typeDemandeAide = 'FINANCIERE';
+    articles = [];
+    justificatifs = [];
+    chargement = false;
+    messageErreur = null;
+    notifyListeners();
+  }
+
   // 2. Données saisies par le bénéficiaire
   String titre = '';
   String typeAide = 'Individuelle';
@@ -354,7 +407,7 @@ class DemandeAideFormController extends ChangeNotifier {
       }
 
       // 2. Récupérer l'organisation partenaire liée à ce bénéficiaire
-      int? organisationId =
+      int? organisationId = organisationPartenaireIdAModifier ??
           await repository.getOrganisationDuBeneficiaire(userId);
       // Si aucune organisation spécifique n'est trouvée, repli vers 1
       organisationId ??= 1;
@@ -394,11 +447,16 @@ class DemandeAideFormController extends ChangeNotifier {
           'articles': articles.map((a) => a.toJson()).toList(),
       };
 
-      // 7. Appel de l'API via le repository
-      final nouvelleDemande = await repository.creer(dto);
+      // 7. Appel de l'API via le repository (création ou modification)
+      final DemandeAide demandeResultat;
+      if (estModification) {
+        demandeResultat = await repository.modifierDemande(demandeIdAModifier!, dto);
+      } else {
+        demandeResultat = await repository.creer(dto);
+      }
 
       // 8. Téléversement des justificatifs attachés s'il y en a
-      if (justificatifs.isNotEmpty && nouvelleDemande.id > 0) {
+      if (justificatifs.isNotEmpty && demandeResultat.id > 0) {
         final Map<int, List<Justificatif>> groupes = {};
         for (final j in justificatifs) {
           final tId = j.typeJustificatifId ??
@@ -409,7 +467,7 @@ class DemandeAideFormController extends ChangeNotifier {
 
         for (final entry in groupes.entries) {
           await repository.uploaderJustificatifs(
-            demandeAideId: nouvelleDemande.id,
+            demandeAideId: demandeResultat.id,
             typeJustificatifId: entry.key,
             justificatifs: entry.value,
           );

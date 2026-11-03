@@ -73,6 +73,7 @@ class _AccueilDonateurPageState
           children: [
             EnteteDonateur(
               prenom: widget.prenom,
+              donateurId: widget.donateurId,
             ),
 
             BanniereDonGeneral(

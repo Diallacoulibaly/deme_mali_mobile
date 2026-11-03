@@ -12,6 +12,7 @@ class Beneficiaire {
 
   // Détails de l'organisation partenaire associée
   final String? nomOrganisation;
+  final String? nomStructure;
   final String? typeOrganisation;
   final String? telephoneOrganisation;
   final String? emailOrganisation;
@@ -32,6 +33,7 @@ class Beneficiaire {
     this.statut,
     this.organisationPartenaireId,
     this.nomOrganisation,
+    this.nomStructure,
     this.typeOrganisation,
     this.telephoneOrganisation,
     this.emailOrganisation,
@@ -41,6 +43,11 @@ class Beneficiaire {
   });
 
   String get nomComplet {
+    if (typeBeneficiaire?.toUpperCase() == 'STRUCTURE' &&
+        nomStructure != null &&
+        nomStructure!.trim().isNotEmpty) {
+      return nomStructure!.trim();
+    }
     final complet = '$prenom $nom'.trim();
     return complet.isNotEmpty ? complet : 'Bénéficiaire';
   }
@@ -49,6 +56,8 @@ class Beneficiaire {
     if (typeBeneficiaire == null || typeBeneficiaire!.isEmpty) return 'Particulier';
     switch (typeBeneficiaire!.toUpperCase()) {
       case 'PARTICULIER':
+        return 'Particulier';
+      case 'STRUCTURE':
         return 'Particulier';
       case 'FAMILLE':
         return 'Famille';
@@ -79,6 +88,7 @@ class Beneficiaire {
     String? statut,
     int? organisationPartenaireId,
     String? nomOrganisation,
+    String? nomStructure,
     String? typeOrganisation,
     String? telephoneOrganisation,
     String? emailOrganisation,
@@ -98,6 +108,7 @@ class Beneficiaire {
       statut: statut ?? this.statut,
       organisationPartenaireId: organisationPartenaireId ?? this.organisationPartenaireId,
       nomOrganisation: nomOrganisation ?? this.nomOrganisation,
+      nomStructure: nomStructure ?? this.nomStructure,
       typeOrganisation: typeOrganisation ?? this.typeOrganisation,
       telephoneOrganisation: telephoneOrganisation ?? this.telephoneOrganisation,
       emailOrganisation: emailOrganisation ?? this.emailOrganisation,
@@ -118,6 +129,7 @@ class Beneficiaire {
         adresse: json['adresse']?.toString(),
         statut: json['statut']?.toString(),
         organisationPartenaireId: (json['organisationPartenaireId'] as num?)?.toInt(),
+        nomStructure: json['nomStructure']?.toString(),
         photoUrl: json['photoUrl']?.toString() ?? json['photo']?.toString(),
       );
 
@@ -138,6 +150,7 @@ class Beneficiaire {
     final telephone = beneficiaireJson['telephone']?.toString() ?? telephoneFallback;
     final email = beneficiaireJson['email']?.toString() ?? organisationJson?['email']?.toString();
     final typeBeneficiaire = beneficiaireJson['typeBeneficiaire']?.toString();
+    final nomStructure = beneficiaireJson['nomStructure']?.toString();
     final ville = beneficiaireJson['ville']?.toString() ?? organisationJson?['ville']?.toString();
     final adresse = beneficiaireJson['adresse']?.toString() ?? organisationJson?['adresse']?.toString();
     final statut = beneficiaireJson['statut']?.toString();
@@ -167,6 +180,7 @@ class Beneficiaire {
       statut: statut,
       organisationPartenaireId: orgId,
       nomOrganisation: nomOrg,
+      nomStructure: nomStructure,
       typeOrganisation: typeOrg,
       telephoneOrganisation: telOrg,
       emailOrganisation: emailOrg,

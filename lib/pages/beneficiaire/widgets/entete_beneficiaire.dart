@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../controllers/notification_controller.dart';
 import '../../../styles/couleurs.dart';
+import '../notifications/notifications_page.dart';
 
-// En-tête avec logo à gauche et cloche de notification à droite
-class EnteteBeneficiaire extends StatelessWidget {
+/// En-tête avec logo à gauche et cloche de notification dynamique à droite.
+class EnteteBeneficiaire extends ConsumerWidget {
   const EnteteBeneficiaire({super.key, this.onNotificationTap});
 
   final VoidCallback? onNotificationTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final nbNonLues = ref.watch(nombreNotificationsNonLuesProvider);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -55,9 +60,15 @@ class EnteteBeneficiaire extends StatelessWidget {
           ],
         ),
 
-        // Bouton cloche notification avec badge
+        // Bouton cloche notification avec badge dynamique
         InkWell(
-          onTap: onNotificationTap,
+          onTap: onNotificationTap ??
+              () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const NotificationsPage()),
+                );
+              },
           borderRadius: BorderRadius.circular(30),
           child: Container(
             width: 46,
@@ -75,24 +86,40 @@ class EnteteBeneficiaire extends StatelessWidget {
             ),
             child: Stack(
               alignment: Alignment.center,
+              clipBehavior: Clip.none,
               children: [
                 const Icon(
                   Icons.notifications_none_rounded,
                   color: CouleursApp.noir,
                   size: 24,
                 ),
-                Positioned(
-                  top: 12,
-                  right: 13,
-                  child: Container(
-                    width: 7,
-                    height: 7,
-                    decoration: const BoxDecoration(
-                      color: CouleursApp.jaune,
-                      shape: BoxShape.circle,
+                if (nbNonLues > 0)
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Center(
+                        child: Text(
+                          nbNonLues > 9 ? '9+' : '$nbNonLues',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.bold,
+                            height: 1,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ),

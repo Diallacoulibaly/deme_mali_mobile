@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import '../models/notification_item.dart';
 import 'auth_repository.dart';
 import 'demande_aide_repository.dart';
+import 'don_financier_repository.dart';
 
 class NotificationRepository {
   static const String baseUrl = AuthRepository.baseUrl;
@@ -17,32 +18,61 @@ class NotificationRepository {
   http.Client? _streamClient;
 
   // 1. Récupère l'historique des notifications depuis le backend Spring Boot
-  Future<List<NotificationItem>> recupererHistoriqueBackend(String telephone) async {
+  Future<List<NotificationItem>> recupererHistoriqueBackend(
+    String telephone, {
+    int? beneficiaireId,
+  }) async {
     final telNettoye = telephone.replaceAll(RegExp(r'\s+'), '');
-    if (telNettoye.isEmpty) return [];
+    final resultat = <NotificationItem>[];
 
-    try {
-      final url = Uri.parse('$baseUrl/api/notifications/user/$telNettoye');
-      final reponse = await http
-          .get(url, headers: {'Accept': 'application/json'})
-          .timeout(const Duration(seconds: 8));
+    // 1.a Recherche par numéro de téléphone
+    if (telNettoye.isNotEmpty) {
+      try {
+        final url = Uri.parse('$baseUrl/api/notifications/user/$telNettoye');
+        final reponse = await http
+            .get(url, headers: {'Accept': 'application/json'})
+            .timeout(const Duration(seconds: 6));
 
-      if (reponse.statusCode == 200) {
-        final dynamic donnees = jsonDecode(utf8.decode(reponse.bodyBytes));
-        if (donnees is List) {
-          return donnees
-              .whereType<Map<String, dynamic>>()
-              .map(NotificationItem.fromJson)
-              .toList();
+        if (reponse.statusCode == 200) {
+          final dynamic donnees = jsonDecode(utf8.decode(reponse.bodyBytes));
+          if (donnees is List) {
+            resultat.addAll(
+              donnees
+                  .whereType<Map<String, dynamic>>()
+                  .map(NotificationItem.fromJson),
+            );
+          }
         }
+      } catch (e) {
+        debugPrint('Info historique notifications backend par téléphone : $e');
       }
-    } catch (e) {
-      debugPrint('Info historique notifications backend : $e');
     }
-    return [];
+
+    // 1.b Si vide et beneficiaireId présent, tentative par identifiant bénéficiaire
+    if (resultat.isEmpty && beneficiaireId != null) {
+      try {
+        final url = Uri.parse('$baseUrl/api/notifications/beneficiaire/$beneficiaireId');
+        final reponse = await http
+            .get(url, headers: {'Accept': 'application/json'})
+            .timeout(const Duration(seconds: 6));
+
+        if (reponse.statusCode == 200) {
+          final dynamic donnees = jsonDecode(utf8.decode(reponse.bodyBytes));
+          if (donnees is List) {
+            resultat.addAll(
+              donnees
+                  .whereType<Map<String, dynamic>>()
+                  .map(NotificationItem.fromJson),
+            );
+          }
+        }
+      } catch (_) {}
+    }
+
+    return resultat;
   }
 
-  // 2. Synthétise les notifications réelles depuis les dons reçus et demandes du bénéficiaire
+  // 2. Synthétise les notifications réelles depuis les dons reçus, demandes et statut du bénéficiaire (particulier et structure)
   Future<List<NotificationItem>> synthetiserDepuisMetier(int? beneficiaireId) async {
     if (beneficiaireId == null) return [];
     final notifications = <NotificationItem>[];
@@ -50,8 +80,14 @@ class NotificationRepository {
     try {
       // A. Notifications des dons reçus / aides distribuées
       final aides = await demandeRepo.getAidesDistribueesByBeneficiaire(beneficiaireId);
+      final Set<int> demandesAvecDonsDistribues = {};
+
       for (final aide in aides) {
-        final dateDistribution = DateTime.tryParse(aide.dateDistribution ?? '') ?? DateTime.now();
+        if (aide.demandeAideId != null) {
+          demandesAvecDonsDistribues.add(aide.demandeAideId!);
+        }
+        final dateDistribution =
+            DateTime.tryParse(aide.dateDistribution ?? '') ?? DateTime.now();
 
         // Dons financiers reçus
         for (final affFin in aide.affectationsFinancieres) {
@@ -91,14 +127,26 @@ class NotificationRepository {
           );
         }
 
-        // Remise effective de l'aide
-        if (aide.statut.toUpperCase() == 'DISTRIBUEE') {
+        // Remise effective ou programmation de l'aide
+        final statutAide = aide.statut.toUpperCase();
+        if (statutAide == 'DISTRIBUEE') {
           notifications.add(
             NotificationItem(
               id: 'distrib_${aide.id}',
               type: TypeNotification.distributionEffectuee,
               titre: 'Aide distribuée avec succès',
               message: 'Votre aide a été remise au lieu de distribution : ${aide.lieuDistribution ?? "Lieu convenu"}.',
+              date: dateDistribution,
+              demandeId: aide.demandeAideId,
+            ),
+          );
+        } else if (statutAide == 'PREVUE' || statutAide == 'EN_COURS') {
+          notifications.add(
+            NotificationItem(
+              id: 'distrib_prev_${aide.id}',
+              type: TypeNotification.distributionPrevue,
+              titre: 'Distribution en cours de préparation',
+              message: 'La distribution de votre aide se prépare au lieu : ${aide.lieuDistribution ?? "Lieu convenu"}.',
               date: dateDistribution,
               demandeId: aide.demandeAideId,
             ),
@@ -113,24 +161,27 @@ class NotificationRepository {
         final titreDemande = demande.titre.trim();
         final dateDemande = demande.dateCreation ?? DateTime.now();
 
-        if (statut == 'VALIDEE') {
+        if (statut == 'VALIDEE' || statut == 'ACCEPTEE' || statut == 'APPROUVEE') {
           notifications.add(
             NotificationItem(
               id: 'demande_val_${demande.id}',
               type: TypeNotification.demandeValidee,
               titre: 'Demande validée',
-              message: 'Votre demande « $titreDemande » a été validée par l’administrateur et est ouverte aux donateurs.',
+              message: 'Votre demande « $titreDemande » a été validée et est maintenant ouverte aux donateurs.',
               date: dateDemande,
               demandeId: demande.id,
             ),
           );
         } else if (statut == 'REJETEE' || statut == 'REFUSEE') {
+          final motif = (demande.motif != null && demande.motif!.trim().isNotEmpty)
+              ? '\nMotif : ${demande.motif!.trim()}'
+              : '';
           notifications.add(
             NotificationItem(
               id: 'demande_rej_${demande.id}',
               type: TypeNotification.demandeRefusee,
               titre: 'Demande non retenue',
-              message: 'Votre demande « $titreDemande » a été refusée.',
+              message: 'Votre demande « $titreDemande » a été refusée.$motif',
               date: dateDemande,
               demandeId: demande.id,
             ),
@@ -144,15 +195,100 @@ class NotificationRepository {
               id: 'demande_100_${demande.id}',
               type: TypeNotification.objectifAtteint,
               titre: 'Objectif atteint à 100% !',
-              message: 'Félicitations ! Votre demande « $titreDemande » a atteint la totalité de son objectif financier.',
+              message: 'Félicitations ! Votre demande « $titreDemande » a atteint la totalité de son objectif.',
               date: dateDemande,
               demandeId: demande.id,
             ),
           );
+        } else if (demande.montantCollecte != null &&
+            demande.montantCollecte! > 0 &&
+            !demandesAvecDonsDistribues.contains(demande.id)) {
+          final montantLisible = demande.montantCollecte!.toStringAsFixed(0).replaceAllMapped(
+            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+            (m) => '${m[1]} ',
+          );
+          notifications.add(
+            NotificationItem(
+              id: 'demande_dons_${demande.id}',
+              type: TypeNotification.donRecu,
+              titre: 'Dons reçus sur votre demande',
+              message: 'Votre demande « $titreDemande » a collecté $montantLisible FCFA grâce aux généreux donateurs.',
+              date: dateDemande,
+              demandeId: demande.id,
+              montant: demande.montantCollecte,
+            ),
+          );
         }
+      }
+
+      // C. Notification de statut du compte (Particulier ou Structure)
+      try {
+        final bData = await demandeRepo.getBeneficiaire(beneficiaireId);
+        if (bData != null) {
+          final statutCompte = (bData['statut'] ?? '').toString().toUpperCase();
+          final typeBeneficiaire = (bData['typeBeneficiaire'] ?? '').toString().toUpperCase();
+          final nomStructure = bData['nomStructure']?.toString();
+          final estStructure = typeBeneficiaire == 'STRUCTURE';
+
+          if (statutCompte == 'VALIDE' ||
+              statutCompte == 'VALIDEE' ||
+              statutCompte == 'ACTIF' ||
+              statutCompte == 'APPROUVE') {
+            notifications.add(
+              NotificationItem(
+                id: 'compte_valide_$beneficiaireId',
+                type: TypeNotification.compteValide,
+                titre: estStructure ? 'Structure validée' : 'Compte validé',
+                message: estStructure
+                    ? 'Votre compte structure ${nomStructure != null && nomStructure.isNotEmpty ? "« $nomStructure » " : ""}a été validé avec succès par l’administrateur. Vous pouvez désormais publier et suivre vos demandes d’aide.'
+                    : 'Votre compte bénéficiaire particulier a été validé par votre organisation partenaire. Vous pouvez dès à présent créer et suivre vos demandes d’aide.',
+                date: DateTime.now().subtract(const Duration(hours: 2)),
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        debugPrint('Info notification statut compte : $e');
       }
     } catch (e) {
       debugPrint('Info synthèse notifications métier : $e');
+    }
+
+    return notifications;
+  }
+
+  // 2b. Synthétise les notifications réelles pour le donateur
+  Future<List<NotificationItem>> synthetiserDepuisMetierDonateur(int? donateurId) async {
+    if (donateurId == null) return [];
+    final notifications = <NotificationItem>[];
+
+    try {
+      final client = http.Client();
+      final donRepo = DonFinancierRepository(baseUrl: baseUrl, client: client);
+      final dons = await donRepo.getByDonateur(donateurId);
+
+      for (final don in dons) {
+        final montantLisible = don.montant.toStringAsFixed(0).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (m) => '${m[1]} ',
+        );
+        final dateDon = don.dateDon ?? DateTime.now();
+
+        notifications.add(
+          NotificationItem(
+            id: 'don_donateur_${don.id}',
+            type: TypeNotification.donRecu,
+            titre: 'Don enregistré avec succès',
+            message: 'Votre don de $montantLisible FCFA a bien été pris en compte. Merci pour votre générosité !',
+            date: dateDon,
+            demandeId: don.demandeAideId,
+            montant: don.montant,
+          ),
+        );
+      }
+      client.close();
+    } catch (e) {
+      debugPrint('Info synthèse notifications donateur : $e');
     }
 
     return notifications;
@@ -162,13 +298,21 @@ class NotificationRepository {
   Future<List<NotificationItem>> chargerToutesNotifications({
     required String telephone,
     int? beneficiaireId,
+    int? donateurId,
   }) async {
-    final listes = await Future.wait([
-      recupererHistoriqueBackend(telephone),
-      synthetiserDepuisMetier(beneficiaireId),
-    ]);
+    final futures = <Future<List<NotificationItem>>>[
+      recupererHistoriqueBackend(telephone, beneficiaireId: beneficiaireId),
+    ];
 
-    final brutes = [...listes[0], ...listes[1]];
+    if (beneficiaireId != null) {
+      futures.add(synthetiserDepuisMetier(beneficiaireId));
+    }
+    if (donateurId != null) {
+      futures.add(synthetiserDepuisMetierDonateur(donateurId));
+    }
+
+    final listes = await Future.wait(futures);
+    final brutes = listes.expand((l) => l).toList();
     final vues = <String, NotificationItem>{};
 
     for (final item in brutes) {

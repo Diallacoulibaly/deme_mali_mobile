@@ -1,4 +1,3 @@
-
 class Donateur {
   final int id;
   final String nom;
@@ -7,6 +6,7 @@ class Donateur {
   final String? sexe;
   final int? paysId;
   final String? paysNom;
+  final String? photo;
 
   const Donateur({
     required this.id,
@@ -16,6 +16,7 @@ class Donateur {
     this.sexe,
     this.paysId,
     this.paysNom,
+    this.photo,
   });
 
   factory Donateur.fromJson(Map<String, dynamic> json) {
@@ -29,10 +30,33 @@ class Donateur {
           ? null
           : (json['paysId'] as num).toInt(),
       paysNom: json['paysNom']?.toString(),
+      photo: json['photo']?.toString() ?? json['photoUrl']?.toString(),
     );
   }
 
   String get nomComplet => '$prenom $nom'.trim();
+
+  Donateur copyWith({
+    int? id,
+    String? nom,
+    String? prenom,
+    String? telephone,
+    String? sexe,
+    int? paysId,
+    String? paysNom,
+    String? photo,
+  }) {
+    return Donateur(
+      id: id ?? this.id,
+      nom: nom ?? this.nom,
+      prenom: prenom ?? this.prenom,
+      telephone: telephone ?? this.telephone,
+      sexe: sexe ?? this.sexe,
+      paysId: paysId ?? this.paysId,
+      paysNom: paysNom ?? this.paysNom,
+      photo: photo ?? this.photo,
+    );
+  }
 
   Map<String, dynamic> toJson() {
     return {
@@ -43,6 +67,7 @@ class Donateur {
       'sexe': sexe,
       'paysId': paysId,
       'paysNom': paysNom,
+      'photo': photo,
     };
   }
 }

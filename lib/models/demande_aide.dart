@@ -16,6 +16,7 @@ class DemandeAide {
   final int? beneficiaireId;
   final String? beneficiaireNom;
   final String? beneficiairePrenom;
+  final int? organisationPartenaireId;
   final int? categorieDemandeId;
   final String? categorieDemandeNom;
   final String? typeDemande;
@@ -41,6 +42,7 @@ class DemandeAide {
     this.beneficiaireId,
     this.beneficiaireNom,
     this.beneficiairePrenom,
+    this.organisationPartenaireId,
     this.categorieDemandeId,
     this.categorieDemandeNom,
     this.typeDemande,
@@ -92,6 +94,9 @@ class DemandeAide {
       beneficiaireId: integer(json['beneficiaireId'] ?? (json['beneficiaire'] is Map ? json['beneficiaire']['id'] : null)),
       beneficiaireNom: json['beneficiaireNom']?.toString() ?? (json['beneficiaire'] is Map ? json['beneficiaire']['nom']?.toString() : null),
       beneficiairePrenom: json['beneficiairePrenom']?.toString() ?? (json['beneficiaire'] is Map ? json['beneficiaire']['prenom']?.toString() : null),
+      organisationPartenaireId: integer(json['organisationPartenaireId'] ??
+          (json['organisationPartenaire'] is Map ? json['organisationPartenaire']['id'] : null) ??
+          (json['organisation'] is Map ? json['organisation']['id'] : null)),
       categorieDemandeId: integer(json['categorieDemandeId'] ?? (json['categorie'] is Map ? json['categorie']['id'] : null) ?? (json['categorieDemande'] is Map ? json['categorieDemande']['id'] : null)),
       categorieDemandeNom: json['categorieDemandeNom']?.toString() ??
           (json['categorie'] is Map ? json['categorie']['nom']?.toString() : null) ??
@@ -120,6 +125,7 @@ class DemandeAide {
     int? beneficiaireId,
     String? beneficiaireNom,
     String? beneficiairePrenom,
+    int? organisationPartenaireId,
     int? categorieDemandeId,
     String? categorieDemandeNom,
     String? typeDemande,
@@ -144,6 +150,7 @@ class DemandeAide {
       beneficiaireId: beneficiaireId ?? this.beneficiaireId,
       beneficiaireNom: beneficiaireNom ?? this.beneficiaireNom,
       beneficiairePrenom: beneficiairePrenom ?? this.beneficiairePrenom,
+      organisationPartenaireId: organisationPartenaireId ?? this.organisationPartenaireId,
       categorieDemandeId: categorieDemandeId ?? this.categorieDemandeId,
       categorieDemandeNom: categorieDemandeNom ?? this.categorieDemandeNom,
       typeDemande: typeDemande ?? this.typeDemande,

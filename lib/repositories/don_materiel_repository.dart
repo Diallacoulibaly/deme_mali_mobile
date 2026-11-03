@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/don_materiel.dart';
@@ -20,10 +21,21 @@ class DonMaterielRepository {
   final http.Client client;
   final String baseUrl;
 
+  final FlutterSecureStorage stockage;
+
   DonMaterielRepository({
     required this.client,
     required this.baseUrl,
+    this.stockage = const FlutterSecureStorage(),
   });
+
+  Future<Map<String, String>> _headers() async {
+    final token = await stockage.read(key: 'accessToken');
+    return {
+      'Accept': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer ' + token,
+    };
+  }
 
   // Valeur du matériel réellement reçu par un donateur
   // pendant une période.
@@ -45,7 +57,7 @@ class DonMaterielRepository {
     final response = await client
         .get(
       uri,
-      headers: {'Accept': 'application/json'},
+      headers: await _headers(),
     )
         .timeout(const Duration(seconds: 15));
 
@@ -88,7 +100,7 @@ class DonMaterielRepository {
       final response = await client
           .get(
         url,
-        headers: {'Accept': 'application/json'},
+        headers: await _headers(),
       )
           .timeout(const Duration(seconds: 15));
 
@@ -147,7 +159,7 @@ class DonMaterielRepository {
       final response = await client
           .get(
         url,
-        headers: {'Accept': 'application/json'},
+        headers: await _headers(),
       )
           .timeout(const Duration(seconds: 15));
 

@@ -1,11 +1,11 @@
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/don_materiel.dart';
 import '../repositories/don_materiel_repository.dart';
+import 'badge_controller.dart';
 
-// 1. Consultation des dons matériels par demande
-final donMaterielControllerProvider =
+// 1. Consultation des dons matériels par demande d'aide
+final donsMaterielsParDemandeProvider =
 FutureProvider.family<List<DonMateriel>, int>(
       (ref, demandeAideId) {
     final repository =
@@ -14,6 +14,9 @@ FutureProvider.family<List<DonMateriel>, int>(
     return repository.getDonsParDemande(demandeAideId);
   },
 );
+
+// Alias de rétrocompatibilité
+final donMaterielControllerProvider = donsMaterielsParDemandeProvider;
 
 // 2. Consultation des dons matériels par donateur
 final donsMaterielsParDonateurProvider =
@@ -32,14 +35,15 @@ Provider<CreationDonMaterielController>((ref) {
   final repository =
   ref.watch(donMaterielRepositoryProvider);
 
-  return CreationDonMaterielController(repository);
+  return CreationDonMaterielController(ref, repository);
 });
 
 // 4. Contrôleur de création
 class CreationDonMaterielController {
+  final Ref ref;
   final DonMaterielRepository repository;
 
-  CreationDonMaterielController(this.repository);
+  CreationDonMaterielController(this.ref, this.repository);
 
   Future<DonMateriel> creer({
     required String designation,
@@ -51,8 +55,8 @@ class CreationDonMaterielController {
     int? demandeAideId,
     int? organisationPartenaireId,
     required String adresseLivraison,
-  }) {
-    return repository.creerDonMateriel(
+  }) async {
+    final don = await repository.creerDonMateriel(
       designation: designation,
       quantite: quantite,
       unite: unite,
@@ -63,6 +67,17 @@ class CreationDonMaterielController {
       demandeAideId: demandeAideId,
       organisationPartenaireId: organisationPartenaireId,
     );
+
+    // Actualiser les listes et forcer le rafraîchissement des badges
+    ref.invalidate(donsMaterielsParDonateurProvider(donateurId));
+    ref.invalidate(badgesActuelsProvider(donateurId));
+    ref.invalidate(historiqueBadgesProvider(donateurId));
+
+    if (demandeAideId != null) {
+      ref.invalidate(donsMaterielsParDemandeProvider(demandeAideId));
+    }
+
+    return don;
   }
 }
 
@@ -77,11 +92,22 @@ class PeriodeDonMateriel {
     required this.debut,
     required this.fin,
   });
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is PeriodeDonMateriel &&
+            other.donateurId == donateurId &&
+            other.debut == debut &&
+            other.fin == fin);
+  }
+
+  @override
+  int get hashCode => Object.hash(donateurId, debut, fin);
 }
 
-// 6. Statistique : valeur du matériel réellement reçu
-// par un donateur pendant une période
-final valeurMaterielleRecueControllerProvider =
+// 6. Statistique : Valeur du matériel réellement reçu
+final valeurMaterielleRecueProvider =
 FutureProvider.family<double, PeriodeDonMateriel>(
       (ref, periode) {
     final repository =
@@ -94,3 +120,6 @@ FutureProvider.family<double, PeriodeDonMateriel>(
     );
   },
 );
+
+// Alias de rétrocompatibilité
+final valeurMaterielleRecueControllerProvider = valeurMaterielleRecueProvider;

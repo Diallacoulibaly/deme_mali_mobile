@@ -7,6 +7,7 @@ import '../../../models/article_demande.dart';
 import '../../../models/demande_aide.dart';
 import '../../../styles/couleurs.dart';
 import '../widgets/barre_navigation_beneficiaire.dart';
+import '../demande/demande_aide_stepper_page.dart';
 
 class DetailAidePage extends ConsumerStatefulWidget {
   const DetailAidePage({
@@ -70,6 +71,29 @@ class _DetailAidePageState extends ConsumerState<DetailAidePage> {
     } catch (_) {
       if (!mounted) return;
       setState(() => _chargement = false);
+    }
+  }
+
+  bool get _estModifiable {
+    final s = _demande.statut.toUpperCase();
+    return s == 'EN_ATTENTE' ||
+        (!s.contains('VALIDE') &&
+            !s.contains('ACCEPTE') &&
+            !s.contains('REJET') &&
+            !s.contains('REFUS'));
+  }
+
+  Future<void> _ouvrirModification() async {
+    final modifie = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => DemandeAideStepperPage(
+          typeDemandeAide: _demande.estMaterielle ? 'MATERIELLE' : 'FINANCIERE',
+          demandeAModifier: _demande,
+        ),
+      ),
+    );
+    if (modifie == true && mounted) {
+      _chargerDonnees();
     }
   }
 
@@ -209,7 +233,7 @@ class _DetailAidePageState extends ConsumerState<DetailAidePage> {
           onRefresh: _chargerDonnees,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -246,34 +270,56 @@ class _DetailAidePageState extends ConsumerState<DetailAidePage> {
                         color: CouleursApp.noir,
                       ),
                     ),
-                    InkWell(
-                      onTap: _chargement ? null : _chargerDonnees,
-                      borderRadius: BorderRadius.circular(30),
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: CouleursApp.blanc,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.04),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (_estModifiable) ...[
+                          InkWell(
+                            onTap: _ouvrirModification,
+                            borderRadius: BorderRadius.circular(30),
+                            child: Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: CouleursApp.vert.withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: CouleursApp.vert.withValues(alpha: 0.2)),
+                              ),
+                              child: const Icon(Icons.edit_outlined, color: CouleursApp.vert, size: 20),
                             ),
-                          ],
-                        ),
-                        child: _chargement
-                            ? const Padding(
-                                padding: EdgeInsets.all(12),
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: CouleursApp.vert,
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        InkWell(
+                          onTap: _chargement ? null : _chargerDonnees,
+                          borderRadius: BorderRadius.circular(30),
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: CouleursApp.blanc,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.04),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
                                 ),
-                              )
-                            : const Icon(Icons.refresh_rounded, color: CouleursApp.vert, size: 22),
-                      ),
+                              ],
+                            ),
+                            child: _chargement
+                                ? const Padding(
+                                    padding: EdgeInsets.all(12),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: CouleursApp.vert,
+                                    ),
+                                  )
+                                : const Icon(Icons.refresh_rounded, color: CouleursApp.vert, size: 22),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -370,6 +416,70 @@ class _DetailAidePageState extends ConsumerState<DetailAidePage> {
                     ],
                   ),
                 ),
+
+                if (_estModifiable) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF9EE),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: CouleursApp.jaune.withValues(alpha: 0.45)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.info_outline, color: Color(0xFFB45309), size: 20),
+                            const SizedBox(width: 8),
+                            const Expanded(
+                              child: Text(
+                                'Demande modifiable (En attente)',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 14,
+                                  color: Color(0xFF92400E),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          "Tant que votre demande n'a pas encore été validée, vous pouvez modifier ses informations (titre, besoin, montant ou justificatifs).",
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            color: Color(0xFF78350F),
+                            height: 1.35,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 42,
+                          child: ElevatedButton.icon(
+                            onPressed: _ouvrirModification,
+                            icon: const Icon(Icons.edit_outlined, size: 18),
+                            label: const Text(
+                              'Modifier ma demande',
+                              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: CouleursApp.vert,
+                              foregroundColor: CouleursApp.blanc,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
 
                 const SizedBox(height: 16),
 
