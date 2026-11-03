@@ -45,12 +45,12 @@ class DonateurRepository {
   String get effectiveBaseUrl => _instanceBaseUrl;
 
   Future<Donateur> getById(int id) async {
-    final response = await _get('/api/donateurs/$id');
+    final response = await _get('/donateurs/$id');
     return Donateur.fromJson(response as Map<String, dynamic>);
   }
 
   Future<List<Donateur>> getAll() async {
-    final response = await _get('/api/donateurs');
+    final response = await _get('/donateurs');
 
     if (response is! List) {
       throw const FormatException(
@@ -77,7 +77,7 @@ class DonateurRepository {
   }) async {
     final response = await _request(
       'PATCH',
-      '/api/donateurs/$donateurId/pays/$paysId',
+      '/donateurs/$donateurId/pays/$paysId',
     );
 
     return Donateur.fromJson(response as Map<String, dynamic>);
@@ -86,7 +86,7 @@ class DonateurRepository {
   Future<Donateur> creer(Map<String, dynamic> donnees) async {
     final response = await _request(
       'POST',
-      '/api/donateurs',
+      '/donateurs',
       body: donnees,
     );
 
@@ -163,7 +163,7 @@ class DonateurRepository {
       await stockage.write(key: 'userPhotoPath', value: cheminFichier);
 
       final token = await stockage.read(key: 'accessToken');
-      final uri = Uri.parse('$effectiveBaseUrl/api/utilisateurs/$donateurId/photo');
+      final uri = Uri.parse('$effectiveBaseUrl/utilisateurs/$donateurId/photo');
       final req = http.MultipartRequest('POST', uri);
       if (token != null && token.isNotEmpty) {
         req.headers['Authorization'] = 'Bearer $token';
@@ -201,7 +201,7 @@ class DonateurRepository {
     await stockage.delete(key: 'userPhotoPath');
     try {
       final token = await stockage.read(key: 'accessToken');
-      final uri = Uri.parse('$effectiveBaseUrl/api/utilisateurs/$donateurId/photo');
+      final uri = Uri.parse('$effectiveBaseUrl/utilisateurs/$donateurId/photo');
       await http.delete(uri, headers: {
         if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
         'Accept': 'application/json',
