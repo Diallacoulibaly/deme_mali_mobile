@@ -10,7 +10,7 @@ import '../models/reponse_connexion.dart';
 
 class AuthRepository {
   // Adresse du backend Spring Boot
-  static const String baseUrl = 'http://localhost:8080';
+  static const String baseUrl = 'http://10.0.2.2:8080/api';
 
   // Stockage du token
   final FlutterSecureStorage stockage = const FlutterSecureStorage();
