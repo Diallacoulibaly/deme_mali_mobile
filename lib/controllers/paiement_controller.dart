@@ -1,13 +1,12 @@
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/paiement_don.dart';
 import '../repositories/paiement_don_repository.dart';
+import 'badge_controller.dart';
 import 'don_financier_controller.dart';
 
 // Fournir le contrôleur de paiement.
-final paiementDonControllerProvider =
-Provider<PaiementDonController>((ref) {
+final paiementDonControllerProvider = Provider<PaiementDonController>((ref) {
   final repository = ref.watch(
     paiementDonRepositoryProvider,
   );
@@ -54,6 +53,10 @@ class PaiementDonController {
       ref.invalidate(
         donsFinanciersDonateurControllerProvider(donateurId),
       );
+
+      // Invalider immédiatement les badges pour forcer le rechargement
+      ref.invalidate(badgesActuelsProvider(donateurId));
+      ref.invalidate(historiqueBadgesProvider(donateurId));
 
       if (demandeAideId != null) {
         ref.invalidate(

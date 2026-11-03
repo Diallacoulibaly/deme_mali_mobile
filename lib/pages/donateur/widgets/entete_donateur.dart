@@ -1,14 +1,26 @@
-
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../controllers/notification_controller.dart';
 import '../../../styles/couleurs.dart';
+import '../notifications/notifications_donateur_page.dart';
 
-class EnteteDonateur extends StatelessWidget {
+class EnteteDonateur extends ConsumerWidget {
   final String prenom;
-  const EnteteDonateur({super.key,required this.prenom,});
+  final int? donateurId;
+  final VoidCallback? onNotificationTap;
+
+  const EnteteDonateur({
+    super.key,
+    required this.prenom,
+    this.donateurId,
+    this.onNotificationTap,
+  });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final nbNonLues = ref.watch(nombreNotificationsNonLuesProvider);
+
     return Container(
       width: double.infinity,
       color: CouleursApp.fond,
@@ -71,30 +83,54 @@ class EnteteDonateur extends StatelessWidget {
                 ),
                 child: Stack(
                   alignment: Alignment.center,
+                  clipBehavior: Clip.none,
                   children: [
                     IconButton(
                       padding: EdgeInsets.zero,
-                      onPressed: () {
-                        // Ajouter ici la navigation vers les notifications.
-                      },
+                      onPressed: onNotificationTap ??
+                          () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => NotificationsDonateurPage(
+                                  donateurId: donateurId ?? 0,
+                                ),
+                              ),
+                            );
+                          },
                       icon: const Icon(
                         Icons.notifications_none_rounded,
                         color: CouleursApp.noir,
                         size: 23,
                       ),
                     ),
-                    Positioned(
-                      right: 9,
-                      top: 8,
-                      child: Container(
-                        width: 7,
-                        height: 7,
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
+                    if (nbNonLues > 0)
+                      Positioned(
+                        right: 4,
+                        top: 4,
+                        child: Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          child: Center(
+                            child: Text(
+                              nbNonLues > 9 ? '9+' : '$nbNonLues',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.bold,
+                                height: 1,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),

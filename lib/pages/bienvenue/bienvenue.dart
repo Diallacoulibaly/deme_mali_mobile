@@ -16,9 +16,13 @@ class BienvenuePage extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             children: [
-              // CONTENU PRINCIPAL
+              // CONTENU PRINCIPAL centré et réajusté
               const Expanded(
-                child: ContenuBienvenue(),
+                child: Center(
+                  child: SingleChildScrollView(
+                    child: ContenuBienvenue(),
+                  ),
+                ),
               ),
 
               // BOUTONS EN BAS

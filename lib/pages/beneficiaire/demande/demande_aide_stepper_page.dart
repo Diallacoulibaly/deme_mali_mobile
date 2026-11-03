@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../controllers/accueil_beneficiaire_controller.dart';
 import '../../../../controllers/demande_aide_controller.dart';
+import '../../../../models/demande_aide.dart';
 import '../../../../styles/couleurs.dart';
 import 'widgets/barre_progression_etapes.dart';
 import 'widgets/etape1_infos.dart';
@@ -17,10 +18,14 @@ class DemandeAideStepperPage extends ConsumerStatefulWidget {
   const DemandeAideStepperPage({
     super.key,
     this.typeDemandeAide = 'FINANCIERE',
+    this.demandeAModifier,
   });
 
   /// Nature de la demande choisie : 'FINANCIERE' ou 'MATERIELLE'
   final String typeDemandeAide;
+
+  /// Demande existante à modifier (si mode édition)
+  final DemandeAide? demandeAModifier;
 
   @override
   ConsumerState<DemandeAideStepperPage> createState() => _DemandeAideStepperPageState();
@@ -37,7 +42,12 @@ class _DemandeAideStepperPageState extends ConsumerState<DemandeAideStepperPage>
   void initState() {
     super.initState();
     final controller = ref.read(demandeAideFormControllerProvider);
-    controller.definirTypeDemandeAide(widget.typeDemandeAide);
+    if (widget.demandeAModifier != null) {
+      controller.preparerPourModification(widget.demandeAModifier!);
+    } else {
+      controller.reinitialiser();
+      controller.definirTypeDemandeAide(widget.typeDemandeAide);
+    }
     _titreController = TextEditingController(text: controller.titre);
     _descriptionController =
         TextEditingController(text: controller.description);
@@ -93,7 +103,7 @@ class _DemandeAideStepperPageState extends ConsumerState<DemandeAideStepperPage>
                         ? 'Justificatifs'
                         : (controller.etape == 2 && controller.estMaterielle)
                             ? 'Articles demandés'
-                            : 'Demander une aide',
+                            : (controller.estModification ? 'Modifier la demande' : 'Demander une aide'),
                     onRetour: () {
                       if (controller.etape > 1) {
                         controller.changerEtape(controller.etape - 1);
@@ -201,8 +211,13 @@ class _DemandeAideStepperPageState extends ConsumerState<DemandeAideStepperPage>
                           // Rafraîchir les données de la page d'accueil
                           ref.invalidate(mesDemandesBeneficiaireProvider);
 
-                          _afficherMessage('Votre demande d\'aide a été transmise avec succès !', succes: true);
-                          Navigator.of(context).pop();
+                          _afficherMessage(
+                            controller.estModification
+                                ? 'Votre demande a été modifiée avec succès !'
+                                : 'Votre demande d\'aide a été transmise avec succès !',
+                            succes: true,
+                          );
+                          Navigator.of(context).pop(true);
                         } else if (controller.messageErreur != null) {
                           _afficherMessage(controller.messageErreur!);
                         }

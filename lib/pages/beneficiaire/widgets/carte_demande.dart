@@ -126,14 +126,18 @@ class CarteDemande extends StatelessWidget {
                     color: Colors.black45,
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    date,
-                    style: const TextStyle(
-                      color: Colors.black54,
-                      fontSize: 12,
+                  Expanded(
+                    child: Text(
+                      date,
+                      style: const TextStyle(
+                        color: Colors.black54,
+                        fontSize: 12,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 6),
                   const Icon(
                     Icons.chevron_right,
                     color: CouleursApp.vert,

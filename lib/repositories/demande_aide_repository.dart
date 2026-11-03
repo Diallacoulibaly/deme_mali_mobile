@@ -333,6 +333,23 @@ class DemandeAideRepository {
         'Erreur ${response.statusCode} lors de la création : ${response.body}');
   }
 
+  /// Modifier une demande d'aide encore en attente (PUT /api/demandes-aide/{id})
+  Future<DemandeAide> modifierDemande(int id, Map<String, dynamic> dto) async {
+    final url = Uri.parse('$baseUrl/api/demandes-aide/$id');
+    final response = await http.put(
+      url,
+      headers: await _headers(),
+      body: jsonEncode(dto),
+    );
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data =
+          jsonDecode(utf8.decode(response.bodyBytes));
+      return DemandeAide.fromJson(data);
+    }
+    throw Exception(
+        'Erreur ${response.statusCode} lors de la modification : ${response.body}');
+  }
+
   /// Récupérer les catégories de demande (GET /api/categories-demande)
   Future<List<CategorieDemande>> getCategories() async {
     try {
