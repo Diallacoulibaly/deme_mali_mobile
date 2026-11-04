@@ -48,8 +48,7 @@ class StructureRepository {
 
     final reponse = await http
         .post(
-          Uri.parse('$baseUrl/api/beneficiaires/structures'),
-          headers: {
+Uri.parse('$baseUrl/beneficiaires/structures'),          headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },

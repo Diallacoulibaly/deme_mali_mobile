@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../controllers/accueil_beneficiaire_controller.dart';
+import '../../controllers/notification_controller.dart';
 import '../../styles/couleurs.dart';
 import 'aides_recues/mes_aides_recues_page.dart';
 import 'demande/choix_type_demande_page.dart';
 import 'mes_demandes/mes_demandes_page.dart';
+import 'notifications/notifications_page.dart';
 import 'profil/mon_profil_page.dart';
 import 'suivi/suivre_aides_page.dart';
 import 'widgets/barre_navigation_beneficiaire.dart';
@@ -32,8 +34,20 @@ class AccueilBeneficiairePage extends ConsumerStatefulWidget {
 
 class _AccueilBeneficiairePageState
     extends ConsumerState<AccueilBeneficiairePage> {
-  void _message(BuildContext context, String texte) =>
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(texte)));
+  @override
+  void initState() {
+    super.initState();
+    // Charger immédiatement les notifications du bénéficiaire
+    Future.microtask(() {
+      ref.read(notificationsNotifierProvider.notifier).charger();
+    });
+  }
+
+  void _ouvrirNotifications(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const NotificationsPage()),
+    );
+  }
 
   void _ouvrirDemandeAide(BuildContext context) {
     if (widget.onDemanderAide != null) {
@@ -75,11 +89,22 @@ class _AccueilBeneficiairePageState
   Widget build(BuildContext context) {
     // 1. Lire l'onglet actif avec Riverpod
     final selectedIndex = ref.watch(ongletActifBeneficiaireProvider);
-    final prenom = widget.prenomBeneficiaire.isNotEmpty
-        ? widget.prenomBeneficiaire
-        : 'Mariam';
 
-    // 2. Choisir l'écran à afficher selon l'onglet sélectionné
+    // 2. Déterminer si le bénéficiaire est un particulier ou une structure
+    final profilAsync = ref.watch(profilBeneficiaireProvider);
+    final bool estStructure =
+        profilAsync.value?.typeBeneficiaire?.toUpperCase() == 'STRUCTURE';
+    final String nomStructure = profilAsync.value?.nomStructure ?? '';
+
+    final String nomAffiche = estStructure && nomStructure.isNotEmpty
+        ? nomStructure
+        : (profilAsync.value?.prenom.isNotEmpty == true
+            ? profilAsync.value!.prenom
+            : (widget.prenomBeneficiaire.isNotEmpty
+                ? widget.prenomBeneficiaire
+                : (estStructure ? 'Structure' : 'Bénéficiaire')));
+
+    // 3. Choisir l'écran à afficher selon l'onglet sélectionné
     Widget corps;
     if (selectedIndex == 1) {
       corps = const MesDemandesPage();
@@ -88,7 +113,11 @@ class _AccueilBeneficiairePageState
     } else if (selectedIndex == 3) {
       corps = const MonProfilPage();
     } else {
-      corps = _buildCorpsAccueil(context, prenom);
+      corps = _buildCorpsAccueil(
+        context,
+        nomAffiche: nomAffiche,
+        estStructure: estStructure,
+      );
     }
 
     return PopScope(
@@ -107,19 +136,21 @@ class _AccueilBeneficiairePageState
     );
   }
 
-
   // Contenu principal de l'onglet 0 (Accueil / Home)
-  Widget _buildCorpsAccueil(BuildContext context, String prenom) {
+  Widget _buildCorpsAccueil(
+    BuildContext context, {
+    required String nomAffiche,
+    required bool estStructure,
+  }) {
     return SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. En-tête : Logo Dèmè Mali + Cloche notification
+          // 1. En-tête : Logo Dèmè Mali + Cloche notification dynamique avec badge
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
             child: EnteteBeneficiaire(
-              onNotificationTap: () =>
-                  _message(context, 'Aucune nouvelle notification'),
+              onNotificationTap: () => _ouvrirNotifications(context),
             ),
           ),
 
@@ -131,17 +162,19 @@ class _AccueilBeneficiairePageState
               color: CouleursApp.vert,
               onRefresh: () async {
                 ref.invalidate(mesDemandesBeneficiaireProvider);
+                ref.invalidate(profilBeneficiaireProvider);
+                ref.read(notificationsNotifierProvider.notifier).charger();
                 await ref.read(mesDemandesBeneficiaireProvider.future);
               },
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 2. Message de bienvenue
+                    // 2. Message de bienvenue adapté
                     Text(
-                      'Bonjour $prenom',
+                      'Bonjour $nomAffiche',
                       style: const TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w900,
@@ -151,7 +184,9 @@ class _AccueilBeneficiairePageState
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Bienvenue dans votre espace bénéficiaire.',
+                      estStructure
+                          ? 'Bienvenue dans votre espace structure.'
+                          : 'Bienvenue dans votre espace bénéficiaire.',
                       style: TextStyle(
                         fontSize: 14.5,
                         color: Colors.black.withValues(alpha: 0.55),

@@ -10,7 +10,7 @@ import '../models/reponse_connexion.dart';
 
 class AuthRepository {
   // Adresse du backend Spring Boot
-  static const String baseUrl = 'http://localhost:8080';
+  static const String baseUrl = 'http://10.0.2.2:8080/api';
 
   // Stockage du token
   final FlutterSecureStorage stockage = const FlutterSecureStorage();
@@ -20,7 +20,7 @@ class AuthRepository {
     required String telephone,
     required String motDePasse,
   }) async {
-    final url = Uri.parse('$baseUrl/api/auth/login');
+final url = Uri.parse('$baseUrl/auth/login');
     final chrono = Stopwatch()..start();
 
     // Normaliser le numéro : supprimer tous les espaces

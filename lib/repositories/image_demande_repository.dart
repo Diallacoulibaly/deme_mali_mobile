@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/image_demande.dart';
@@ -10,6 +11,20 @@ import 'http_client_provider.dart'; // adapte au nom réel de ton fichier
 
 class ImageDemandeRepository {
   static const String baseUrl = '${AuthRepository.baseUrl}/api';
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
+  Future<Map<String, String>> _headers() async {
+    final headers = <String, String>{
+      'Accept': 'application/json',
+    };
+    try {
+      final token = await _storage.read(key: 'accessToken');
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+    } catch (_) {}
+    return headers;
+  }
 
   final http.Client _client;
 
@@ -18,6 +33,7 @@ class ImageDemandeRepository {
   Future<List<ImageDemande>> getImagesDemande(int demandeId) async {
     final response = await _client.get(
       Uri.parse('$baseUrl/images-demandes/demande/$demandeId'),
+      headers: headers,
     );
 
     debugPrint('IMAGES demande $demandeId : ${response.statusCode} ${response.body}');
@@ -43,6 +59,7 @@ class ImageDemandeRepository {
   Future<ImageDemande> getImageById(int id) async {
     final response = await _client.get(
       Uri.parse('$baseUrl/images-demandes/$id'),
+      headers: headers,
     );
 
     if (response.statusCode != 200) {
@@ -51,9 +68,15 @@ class ImageDemandeRepository {
       );
     }
 
-    return ImageDemande.fromJson(
-      jsonDecode(response.body) as Map<String, dynamic>,
-    );
+    final dynamic decoded = jsonDecode(response.body);
+
+    if (decoded is! Map<String, dynamic>) {
+      throw const FormatException(
+        'La réponse doit être un objet JSON.',
+      );
+    }
+
+    return ImageDemande.fromJson(decoded);
   }
 }
 

@@ -21,7 +21,7 @@ class OrganisationPartenaireRepository {
     required int donateurId,
   }) async {
     final uri = Uri.parse(
-      '$baseUrl/api/organisations-partenaires/liste-avec-likes',
+      '$baseUrl/organisations-partenaires/liste-avec-likes',
     ).replace(
       queryParameters: {
         'donateurId': donateurId.toString(),
@@ -67,9 +67,9 @@ class OrganisationPartenaireRepository {
   Future<OrganisationPartenaire> getOrganisationById(
       int organisationId,
       ) async {
-    final uri = Uri.parse(
-      '$baseUrl/api/organisations-partenaires/$organisationId',
-    );
+   final uri = Uri.parse(
+  '$baseUrl/organisations-partenaires/$organisationId',
+);
 
     final response = await _client.get(
       uri,

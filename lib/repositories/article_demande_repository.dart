@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/article_demande.dart';
@@ -9,6 +10,20 @@ import 'http_client_provider.dart'; // adapte au nom réel de ton fichier
 
 class ArticleDemandeRepository {
   static const String baseUrl = '${AuthRepository.baseUrl}/api';
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
+  Future<Map<String, String>> _headers() async {
+    final headers = <String, String>{
+      'Accept': 'application/json',
+    };
+    try {
+      final token = await _storage.read(key: 'accessToken');
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+    } catch (_) {}
+    return headers;
+  }
 
   final http.Client _client;
 
@@ -18,6 +33,7 @@ class ArticleDemandeRepository {
   Future<List<ArticleDemande>> getArticles(int demandeId) async {
     final response = await _client.get(
       Uri.parse('$baseUrl/articles-demande/demande/$demandeId'),
+      headers: headers,
     );
 
     if (response.statusCode != 200) {

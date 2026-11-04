@@ -1,8 +1,9 @@
-
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/badge_donateur_model.dart';
@@ -11,16 +12,18 @@ import 'http_client_provider.dart';
 class BadgeRepository {
   final http.Client client;
   final String baseUrl;
+  final FlutterSecureStorage stockage;
 
   BadgeRepository({
     required this.client,
     required this.baseUrl,
+    this.stockage = const FlutterSecureStorage(),
   });
 
   /// Récupérer les badges du semestre actuel.
   Future<List<BadgeDonateurModel>> obtenirBadgesActuels(
-      int donateurId,
-      ) async {
+    int donateurId,
+  ) async {
     final url = Uri.parse(
       '$baseUrl/api/badges/donateur/$donateurId/actuel',
     );
@@ -48,8 +51,8 @@ class BadgeRepository {
 
   /// Récupérer l'historique des badges.
   Future<List<BadgeDonateurModel>> obtenirHistorique(
-      int donateurId,
-      ) async {
+    int donateurId,
+  ) async {
     final url = Uri.parse(
       '$baseUrl/api/badges/donateur/$donateurId/historique',
     );
@@ -59,15 +62,24 @@ class BadgeRepository {
 
   /// Exécuter une requête HTTP et convertir le JSON.
   Future<List<BadgeDonateurModel>> _envoyerRequete(
-      Uri url,
-      ) async {
+    Uri url,
+  ) async {
     try {
+      final token = await stockage.read(key: 'accessToken');
+      final headers = <String, String>{
+        'Accept': 'application/json',
+        if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+      };
+
       final response = await client
           .get(
-        url,
-        headers: {'Accept': 'application/json'},
-      )
+            url,
+            headers: headers,
+          )
           .timeout(const Duration(seconds: 15));
+
+      debugPrint('[BADGES] Requête : $url (Token présent: ${token != null && token.isNotEmpty}) -> HTTP ${response.statusCode}');
+      debugPrint('[BADGES] Corps réponse : ${response.body}');
 
       if (response.statusCode != 200) {
         throw Exception(
@@ -79,13 +91,24 @@ class BadgeRepository {
         utf8.decode(response.bodyBytes),
       );
 
-      if (donnees is! List) {
+      final List liste;
+      if (donnees is List) {
+        liste = donnees;
+      } else if (donnees is Map && donnees['content'] is List) {
+        liste = donnees['content'] as List;
+      } else if (donnees is Map && donnees['badges'] is List) {
+        liste = donnees['badges'] as List;
+      } else if (donnees is Map && donnees['donnees'] is List) {
+        liste = donnees['donnees'] as List;
+      } else if (donnees is Map && donnees['data'] is List) {
+        liste = donnees['data'] as List;
+      } else {
         throw const FormatException(
-          'La réponse du serveur doit être une liste JSON.',
+          'La réponse du serveur doit être une liste JSON ou contenir un tableau.',
         );
       }
 
-      return donnees.map<BadgeDonateurModel>((element) {
+      return liste.map<BadgeDonateurModel>((element) {
         if (element is! Map) {
           throw const FormatException(
             'Un élément de badge est invalide.',

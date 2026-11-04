@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/demande_aide.dart';
@@ -19,9 +20,7 @@ class DemandeAideRepository {
   Future<List<DemandeAide>> getDemandesDisponibles() async {
     final response = await client.get(
       Uri.parse('$baseUrl/demandes-aide/disponibles-pour-don'),
-      headers: {
-        'Accept': 'application/json',
-      },
+      headers: headers,
     );
 
     if (response.statusCode != 200) {
@@ -53,9 +52,7 @@ class DemandeAideRepository {
   Future<DemandeAide> getDemandeById(int id) async {
     final response = await client.get(
       Uri.parse('$baseUrl/demandes-aide/$id'),
-      headers: {
-        'Accept': 'application/json',
-      },
+      headers: headers,
     );
 
     if (response.statusCode != 200) {

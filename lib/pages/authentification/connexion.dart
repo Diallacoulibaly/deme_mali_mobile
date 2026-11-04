@@ -157,11 +157,18 @@ class _ConnexionPageState extends State<ConnexionPage> {
     final role = utilisateur.role.trim().toUpperCase();
 
     if (role == 'BENEFICIAIRE' || role == 'BENEFICIARE') {
+      String nomBeneficiaire = utilisateur.prenom;
       try {
         final repo = BeneficiaireRepository();
         final beneficiaire = await repo.getBeneficiaireById(utilisateur.id);
         final statut = (beneficiaire.statut ?? '').toUpperCase();
         final typeBeneficiaire = (beneficiaire.typeBeneficiaire ?? '').toUpperCase();
+
+        if (typeBeneficiaire == 'STRUCTURE' &&
+            beneficiaire.nomStructure != null &&
+            beneficiaire.nomStructure!.trim().isNotEmpty) {
+          nomBeneficiaire = beneficiaire.nomStructure!.trim();
+        }
 
         if (statut == 'EN_ATTENTE') {
           await AuthRepository().deconnexion();
@@ -258,7 +265,7 @@ class _ConnexionPageState extends State<ConnexionPage> {
         context,
         MaterialPageRoute(
           builder: (context) => AccueilBeneficiairePage(
-            prenomBeneficiaire: utilisateur.prenom,
+            prenomBeneficiaire: nomBeneficiaire,
           ),
         ),
         (route) => false,
@@ -296,13 +303,13 @@ class _ConnexionPageState extends State<ConnexionPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 25),
+              const SizedBox(height: 16),
 
               Center(
                 child: Image.asset(
                   'assets/images/logo_acceuil.png',
-                  width: 140,
-                  height: 120,
+                  width: 95,
+                  height: 85,
                   fit: BoxFit.contain,
                   errorBuilder: (context, error, stackTrace) => Image.asset(
                     'assets/images/logo_Acceuil.png',
@@ -344,18 +351,18 @@ class _ConnexionPageState extends State<ConnexionPage> {
                 ),
               ),
 
-              const SizedBox(height: 35),
+              const SizedBox(height: 18),
 
               const Text(
                 'Connexion',
                 style: TextStyle(
-                  fontSize: 23,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: CouleursApp.noir,
                 ),
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 6),
 
               const Text(
                 'Connectez-vous à votre compte Dèmè Mali.',
@@ -365,7 +372,7 @@ class _ConnexionPageState extends State<ConnexionPage> {
                 ),
               ),
 
-              const SizedBox(height: 25),
+              const SizedBox(height: 16),
 
               ChampConnexion(
                 titre: 'Téléphone',
@@ -374,7 +381,7 @@ class _ConnexionPageState extends State<ConnexionPage> {
                 typeClavier: TextInputType.phone,
               ),
 
-              const SizedBox(height: 18),
+              const SizedBox(height: 12),
 
               ChampConnexion(
                 titre: 'Mot de passe',
@@ -389,7 +396,7 @@ class _ConnexionPageState extends State<ConnexionPage> {
                 },
               ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 4),
 
               Align(
                 alignment: Alignment.centerRight,
@@ -413,14 +420,14 @@ class _ConnexionPageState extends State<ConnexionPage> {
                 ),
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
 
               BoutonConnexion(
                 chargement: controller.chargement,
                 onPressed: _connecter,
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 14),
 
               Center(
                 child: Wrap(

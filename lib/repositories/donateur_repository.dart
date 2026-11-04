@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/donateur.dart';
@@ -34,6 +35,7 @@ class DonateurRepository {
   static const String baseUrl = AuthRepository.baseUrl;
   final String _instanceBaseUrl;
   final http.Client? client;
+  final FlutterSecureStorage stockage = const FlutterSecureStorage();
 
   DonateurRepository({
     String? baseUrl,
@@ -43,12 +45,12 @@ class DonateurRepository {
   String get effectiveBaseUrl => _instanceBaseUrl;
 
   Future<Donateur> getById(int id) async {
-    final response = await _get('/api/donateurs/$id');
+    final response = await _get('/donateurs/$id');
     return Donateur.fromJson(response as Map<String, dynamic>);
   }
 
   Future<List<Donateur>> getAll() async {
-    final response = await _get('/api/donateurs');
+    final response = await _get('/donateurs');
 
     if (response is! List) {
       throw const FormatException(
@@ -75,7 +77,7 @@ class DonateurRepository {
   }) async {
     final response = await _request(
       'PATCH',
-      '/api/donateurs/$donateurId/pays/$paysId',
+      '/donateurs/$donateurId/pays/$paysId',
     );
 
     return Donateur.fromJson(response as Map<String, dynamic>);
@@ -84,7 +86,7 @@ class DonateurRepository {
   Future<Donateur> creer(Map<String, dynamic> donnees) async {
     final response = await _request(
       'POST',
-      '/api/donateurs',
+      '/donateurs',
       body: donnees,
     );
 
@@ -113,7 +115,7 @@ class DonateurRepository {
 
     final reponse = await http
         .post(
-          Uri.parse('$effectiveBaseUrl/api/donateurs'),
+          Uri.parse('$effectiveBaseUrl/donateurs'),
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
@@ -151,6 +153,68 @@ class DonateurRepository {
     throw Exception('Erreur HTTP ${reponse.statusCode} : ${reponse.body}');
   }
 
+  /// Sauvegarder la photo de profil du donateur (POST multipart /api/utilisateurs/{id}/photo)
+  Future<bool> enregistrerPhotoProfil({
+    required int donateurId,
+    required String cheminFichier,
+  }) async {
+    try {
+      await stockage.write(key: 'userPhotoPath_$donateurId', value: cheminFichier);
+      await stockage.write(key: 'userPhotoPath', value: cheminFichier);
+
+      final token = await stockage.read(key: 'accessToken');
+      final uri = Uri.parse('$effectiveBaseUrl/utilisateurs/$donateurId/photo');
+      final req = http.MultipartRequest('POST', uri);
+      if (token != null && token.isNotEmpty) {
+        req.headers['Authorization'] = 'Bearer $token';
+      }
+      req.headers['Accept'] = 'application/json';
+      req.files.add(await http.MultipartFile.fromPath('photo', cheminFichier));
+
+      final streamed = await req.send();
+      final resp = await http.Response.fromStream(streamed);
+
+      if (resp.statusCode == 200 || resp.statusCode == 201) {
+        final data = jsonDecode(utf8.decode(resp.bodyBytes));
+        final nomPhoto = data['nomFichier'] ?? data['photo'] ?? data['url'];
+        if (nomPhoto != null) {
+          await stockage.write(
+            key: 'userPhotoPath_$donateurId',
+            value: nomPhoto.toString(),
+          );
+          await stockage.write(
+            key: 'userPhotoPath',
+            value: nomPhoto.toString(),
+          );
+        }
+        return true;
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Supprimer la photo de profil du donateur (DELETE /api/utilisateurs/{id}/photo)
+  Future<void> supprimerPhotoProfil(int donateurId) async {
+    await stockage.delete(key: 'userPhotoPath_$donateurId');
+    await stockage.delete(key: 'userPhotoPath');
+    try {
+      final token = await stockage.read(key: 'accessToken');
+      final uri = Uri.parse('$effectiveBaseUrl/utilisateurs/$donateurId/photo');
+      await http.delete(uri, headers: {
+        if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      });
+    } catch (_) {}
+  }
+
+  /// Récupérer le chemin local ou nom de photo mis en cache
+  Future<String?> obtenirPhotoProfil(int donateurId) async {
+    return (await stockage.read(key: 'userPhotoPath_$donateurId')) ??
+        (await stockage.read(key: 'userPhotoPath'));
+  }
+
   Future<dynamic> _get(String path) async {
     return _request('GET', path);
   }
@@ -164,13 +228,19 @@ class DonateurRepository {
     final cl = client ?? http.Client();
 
     try {
+      final token = await stockage.read(key: 'accessToken');
+      final baseHeaders = <String, String>{
+        'Accept': 'application/json',
+        if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+      };
+
       late http.Response response;
 
       switch (method) {
         case 'GET':
           response = await cl.get(
             url,
-            headers: {'Accept': 'application/json'},
+            headers: baseHeaders,
           ).timeout(const Duration(seconds: 15));
           break;
 
@@ -178,7 +248,7 @@ class DonateurRepository {
           response = await cl.post(
             url,
             headers: {
-              'Accept': 'application/json',
+              ...baseHeaders,
               'Content-Type': 'application/json',
             },
             body: jsonEncode(body),
@@ -188,7 +258,7 @@ class DonateurRepository {
         case 'PATCH':
           response = await cl.patch(
             url,
-            headers: {'Accept': 'application/json'},
+            headers: baseHeaders,
           ).timeout(const Duration(seconds: 15));
           break;
 

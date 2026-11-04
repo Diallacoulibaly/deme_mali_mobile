@@ -6,6 +6,7 @@ import '../../../models/demande_aide.dart';
 import '../../../styles/couleurs.dart';
 import '../demande/choix_type_demande_page.dart';
 import '../detail/detail_aide_page.dart';
+import '../demande/demande_aide_stepper_page.dart';
 
 class MesDemandesPage extends ConsumerWidget {
   const MesDemandesPage({super.key});
@@ -27,7 +28,7 @@ class MesDemandesPage extends ConsumerWidget {
     } else {
       fond = const Color(0xFFF7B500);
       texte = CouleursApp.noir;
-      libelle = 'En cours de vérification';
+      libelle = 'En attente';
     }
 
     return Container(
@@ -69,7 +70,7 @@ class MesDemandesPage extends ConsumerWidget {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -315,37 +316,88 @@ class MesDemandesPage extends ConsumerWidget {
             Divider(color: Colors.black.withValues(alpha: 0.07)),
             const SizedBox(height: 10),
 
-            // Ligne basse : Date + Voir les détails >
+            // Ligne basse : Date + Actions (anti-débordement)
             Row(
               children: [
                 Icon(
                   Icons.calendar_today_outlined,
-                  size: 14,
+                  size: 13,
                   color: Colors.black.withValues(alpha: 0.5),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  dateStr,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black.withValues(alpha: 0.6),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    dateStr,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black.withValues(alpha: 0.6),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Spacer(),
-                const Text(
-                  'Voir les détails',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: CouleursApp.vert,
+                const SizedBox(width: 6),
+                if (demande.statut.toUpperCase() == 'EN_ATTENTE' ||
+                    (!demande.statut.toUpperCase().contains('VALIDE') &&
+                        !demande.statut.toUpperCase().contains('ACCEPTE') &&
+                        !demande.statut.toUpperCase().contains('REJET') &&
+                        !demande.statut.toUpperCase().contains('REFUS'))) ...[
+                  InkWell(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => DemandeAideStepperPage(
+                            typeDemandeAide: demande.estMaterielle ? 'MATERIELLE' : 'FINANCIERE',
+                            demandeAModifier: demande,
+                          ),
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+                      decoration: BoxDecoration(
+                        color: CouleursApp.vert.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.edit_outlined, size: 13, color: CouleursApp.vert),
+                          SizedBox(width: 3),
+                          Text(
+                            'Modifier',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: CouleursApp.vert,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 4),
-                const Icon(
-                  Icons.chevron_right,
-                  size: 16,
-                  color: CouleursApp.vert,
+                  const SizedBox(width: 8),
+                ],
+                const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Détails',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: CouleursApp.vert,
+                      ),
+                    ),
+                    SizedBox(width: 2),
+                    Icon(
+                      Icons.chevron_right,
+                      size: 15,
+                      color: CouleursApp.vert,
+                    ),
+                  ],
                 ),
               ],
             ),

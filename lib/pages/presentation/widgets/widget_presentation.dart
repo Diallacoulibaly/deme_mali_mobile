@@ -26,7 +26,7 @@ class WidgetPresentation extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: 14),
 
         // Description centrée.
         const SizedBox(
@@ -37,13 +37,13 @@ class WidgetPresentation extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               color: CouleursApp.noir,
-              fontSize: 15,
-              height: 1.4,
+              fontSize: 14,
+              height: 1.35,
             ),
           ),
         ),
 
-        const SizedBox(height: 42),
+        const SizedBox(height: 26),
 
         // Illustrations remontées et espacées.
         Row(

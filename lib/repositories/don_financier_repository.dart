@@ -1,7 +1,7 @@
-
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/don_financier.dart';
@@ -47,16 +47,27 @@ Provider<DonFinancierRepository>((ref) {
 class DonFinancierRepository {
   final String baseUrl;
   final http.Client client;
+  final FlutterSecureStorage stockage;
 
   DonFinancierRepository({
     required this.baseUrl,
     required this.client,
+    this.stockage = const FlutterSecureStorage(),
   });
+
+  Future<Map<String, String>> _headers() async {
+    final token = await stockage.read(key: 'accessToken');
+    return {
+      'Accept': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+  }
 
   // Récupérer tous les dons financiers.
   Future<List<DonFinancier>> getAll() async {
     final response = await client.get(
       Uri.parse('$baseUrl/api/dons-financiers'),
+      headers: await _headers(),
     );
 
     _verifierReponse(response);
@@ -76,6 +87,7 @@ class DonFinancierRepository {
   Future<DonFinancier> getById(int id) async {
     final response = await client.get(
       Uri.parse('$baseUrl/api/dons-financiers/$id'),
+      headers: await _headers(),
     );
 
     _verifierReponse(response);
@@ -85,7 +97,6 @@ class DonFinancierRepository {
     );
   }
 
-
   // Récupérer les dons financiers d'un donateur.
   Future<List<DonFinancier>> getByDonateur(
       int donateurId,
@@ -94,6 +105,7 @@ class DonFinancierRepository {
       Uri.parse(
         '$baseUrl/api/dons-financiers/donateur/$donateurId',
       ),
+      headers: await _headers(),
     );
 
     _verifierReponse(response);
@@ -117,6 +129,7 @@ class DonFinancierRepository {
       Uri.parse(
         '$baseUrl/api/dons-financiers/demande/$demandeAideId',
       ),
+      headers: await _headers(),
     );
 
     _verifierReponse(response);
@@ -133,21 +146,21 @@ class DonFinancierRepository {
   }
 
   // Récupérer le total des dons financiers confirmés.
-  Future<double> getTotalDons() {
+  Future<double> getTotalDons() async {
     return _getMontant(
       '/api/dons-financiers/statistiques/total',
     );
   }
 
   // Récupérer le total des dons affectés.
-  Future<double> getTotalDonsAffectes() {
+  Future<double> getTotalDonsAffectes() async {
     return _getMontant(
       '/api/dons-financiers/statistiques/affectes',
     );
   }
 
   // Récupérer le total des dons généraux.
-  Future<double> getTotalDonsGeneraux() {
+  Future<double> getTotalDonsGeneraux() async {
     return _getMontant(
       '/api/dons-financiers/statistiques/generaux',
     );
@@ -167,7 +180,10 @@ class DonFinancierRepository {
       },
     );
 
-    final response = await client.get(uri);
+    final response = await client.get(
+      uri,
+      headers: await _headers(),
+    );
 
     _verifierReponse(response);
 
@@ -186,6 +202,7 @@ class DonFinancierRepository {
   Future<double> _getMontant(String chemin) async {
     final response = await client.get(
       Uri.parse('$baseUrl$chemin'),
+      headers: await _headers(),
     );
 
     _verifierReponse(response);
@@ -228,6 +245,7 @@ class DonFinancierRepository {
 
     throw Exception(message);
   }
+
   /// Total des dons financiers confirmés d'un donateur
   /// pendant une période.
   Future<double> getTotalConfirmeParPeriode({
@@ -245,7 +263,10 @@ class DonFinancierRepository {
       },
     );
 
-    final response = await client.get(uri);
+    final response = await client.get(
+      uri,
+      headers: await _headers(),
+    );
 
     _verifierReponse(response);
 

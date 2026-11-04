@@ -41,7 +41,7 @@ class PresentationDonPage extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               WidgetMessageAide(),
-                              SizedBox(height: 58),
+                              SizedBox(height: 24),
                               WidgetEtapesAide(),
                             ],
                           ),
