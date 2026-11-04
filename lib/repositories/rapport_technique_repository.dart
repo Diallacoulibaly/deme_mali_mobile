@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,9 +5,14 @@ import 'package:http/http.dart' as http;
 
 import '../models/rapport_technique.dart';
 import 'auth_repository.dart';
+import 'http_client_provider.dart'; // adapte au nom réel de ton fichier
 
 class RapportTechniqueRepository {
   static const String baseUrl = AuthRepository.baseUrl;
+
+  final http.Client _client;
+
+  RapportTechniqueRepository(this._client);
 
   Future<RapportTechnique?> getRapportTechniquePourDemande(
       int demandeId,
@@ -18,7 +22,7 @@ class RapportTechniqueRepository {
       '$baseUrl/api/etudes-terrain/demande/$demandeId',
     );
 
-    final etudeResponse = await http.get(
+    final etudeResponse = await _client.get(
       etudeUrl,
       headers: {'Accept': 'application/json'},
     );
@@ -34,8 +38,7 @@ class RapportTechniqueRepository {
       );
     }
 
-    final etude =
-    jsonDecode(etudeResponse.body) as Map<String, dynamic>;
+    final etude = jsonDecode(etudeResponse.body) as Map<String, dynamic>;
 
     final etudeId = (etude['id'] as num).toInt();
 
@@ -44,7 +47,7 @@ class RapportTechniqueRepository {
       '$baseUrl/api/rapports-besoin/etude-terrain/$etudeId',
     );
 
-    final besoinResponse = await http.get(
+    final besoinResponse = await _client.get(
       besoinUrl,
       headers: {'Accept': 'application/json'},
     );
@@ -60,8 +63,7 @@ class RapportTechniqueRepository {
       );
     }
 
-    final besoin =
-    jsonDecode(besoinResponse.body) as Map<String, dynamic>;
+    final besoin = jsonDecode(besoinResponse.body) as Map<String, dynamic>;
 
     final rapportBesoinId = (besoin['id'] as num).toInt();
 
@@ -71,7 +73,7 @@ class RapportTechniqueRepository {
           '$rapportBesoinId',
     );
 
-    final techniqueResponse = await http.get(
+    final techniqueResponse = await _client.get(
       techniqueUrl,
       headers: {'Accept': 'application/json'},
     );
@@ -98,5 +100,5 @@ class RapportTechniqueRepository {
 // Provider Riverpod du repository.
 final rapportTechniqueRepositoryProvider =
 Provider<RapportTechniqueRepository>((ref) {
-  return RapportTechniqueRepository();
+  return RapportTechniqueRepository(ref.watch(httpClientProvider));
 });

@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,9 +5,14 @@ import 'package:http/http.dart' as http;
 
 import '../models/rapport_besoin.dart';
 import 'auth_repository.dart';
+import 'http_client_provider.dart'; // adapte au nom réel de ton fichier
 
 class RapportBesoinRepository {
   static const String baseUrl = AuthRepository.baseUrl;
+
+  final http.Client _client;
+
+  RapportBesoinRepository(this._client);
 
   /// Récupérer le rapport de besoin associé à une étude de terrain.
   Future<RapportBesoin?> getRapportBesoinPourEtude(
@@ -18,7 +22,7 @@ class RapportBesoinRepository {
       '$baseUrl/api/rapports-besoin/etude-terrain/$etudeTerrainId',
     );
 
-    final response = await http.get(
+    final response = await _client.get(
       url,
       headers: {
         'Accept': 'application/json',
@@ -38,8 +42,7 @@ class RapportBesoinRepository {
       );
     }
 
-    final json = jsonDecode(response.body)
-    as Map<String, dynamic>;
+    final json = jsonDecode(response.body) as Map<String, dynamic>;
 
     return RapportBesoin.fromJson(json);
   }
@@ -48,5 +51,5 @@ class RapportBesoinRepository {
 /// Provider du repository.
 final rapportBesoinRepositoryProvider =
 Provider<RapportBesoinRepository>((ref) {
-  return RapportBesoinRepository();
+  return RapportBesoinRepository(ref.watch(httpClientProvider));
 });

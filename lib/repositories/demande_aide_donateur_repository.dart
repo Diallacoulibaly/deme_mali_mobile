@@ -6,29 +6,19 @@ import 'package:http/http.dart' as http;
 
 import '../models/demande_aide.dart';
 import 'auth_repository.dart';
+import 'http_client_provider.dart';
 
 class DemandeAideRepository {
   static const String baseUrl = '${AuthRepository.baseUrl}/api';
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
-  Future<Map<String, String>> _headers() async {
-    final headers = <String, String>{
-      'Accept': 'application/json',
-    };
-    try {
-      final token = await _storage.read(key: 'accessToken');
-      if (token != null && token.isNotEmpty) {
-        headers['Authorization'] = 'Bearer $token';
-      }
-    } catch (_) {}
-    return headers;
-  }
+  final http.Client client;
+
+  DemandeAideRepository({required this.client});
 
   // Récupérer les demandes disponibles pour les dons.
   // Conditions : demande validée et collecte non terminée.
   Future<List<DemandeAide>> getDemandesDisponibles() async {
-    final headers = await _headers();
-    final response = await http.get(
+    final response = await client.get(
       Uri.parse('$baseUrl/demandes-aide/disponibles-pour-don'),
       headers: headers,
     );
@@ -60,8 +50,7 @@ class DemandeAideRepository {
 
   // Récupérer une demande par son identifiant.
   Future<DemandeAide> getDemandeById(int id) async {
-    final headers = await _headers();
-    final response = await http.get(
+    final response = await client.get(
       Uri.parse('$baseUrl/demandes-aide/$id'),
       headers: headers,
     );
@@ -87,7 +76,9 @@ class DemandeAideRepository {
 // Provider du repository des demandes.
 final demandeAideRepositoryProvider =
 Provider<DemandeAideRepository>((ref) {
-  return DemandeAideRepository();
+  return DemandeAideRepository(
+    client: ref.watch(httpClientProvider),
+  );
 });
 
 // Provider pour charger les demandes disponibles.

@@ -16,6 +16,7 @@ class BarreNavigation extends StatelessWidget {
   static const Color blanc = Colors.white;
   static const Color beige = Color(0xFFF7F3EA);
 
+
   @override
   Widget build(BuildContext context) {
     return CurvedNavigationBar(

@@ -5,16 +5,11 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-
+import 'http_client_provider.dart';
 import '../models/don_materiel.dart';
 import 'auth_repository.dart';
 
 // Client HTTP
-final httpClientProvider = Provider<http.Client>((ref) {
-  final client = http.Client();
-  ref.onDispose(client.close);
-  return client;
-});
 
 // Repository
 class DonMaterielRepository {

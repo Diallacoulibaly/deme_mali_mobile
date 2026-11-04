@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 
 import '../models/badge_donateur_model.dart';
 import 'auth_repository.dart';
-
+import 'http_client_provider.dart';
 class BadgeRepository {
   final http.Client client;
   final String baseUrl;
@@ -135,12 +135,7 @@ class BadgeRepository {
   }
 }
 
-/// Client HTTP partagé par les repositories.
-final httpClientProvider = Provider<http.Client>((ref) {
-  final client = http.Client();
-  ref.onDispose(client.close);
-  return client;
-});
+
 
 /// Repository des badges.
 final badgeRepositoryProvider = Provider<BadgeRepository>((ref) {

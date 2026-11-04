@@ -7,7 +7,8 @@ import 'package:http/http.dart' as http;
 import '../models/paiement_don.dart';
 import 'don_financier_repository.dart';
 import 'package:flutter/foundation.dart';
-
+import 'http_client_provider.dart';
+import 'http_client_provider.dart';
 // Fournisseur du dépôt des paiements.
 final paiementDonRepositoryProvider =
 Provider<PaiementDonRepository>((ref) {

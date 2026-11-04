@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +8,24 @@ import 'pages/lancement/ecran_lancement.dart';
 import 'styles/couleurs.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Capture les erreurs Flutter
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+
+    debugPrint('ERREUR FLUTTER : ${details.exception}');
+    debugPrintStack(stackTrace: details.stack);
+  };
+
+  // Capture les erreurs asynchrones non gérées
+  PlatformDispatcher.instance.onError = (error, stack) {
+    debugPrint('ERREUR NON CAPTURÉE : $error');
+    debugPrintStack(stackTrace: stack);
+
+    return true;
+  };
+
   runApp(
     const ProviderScope(
       child: DemeMaliApp(),
