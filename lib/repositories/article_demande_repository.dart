@@ -1,16 +1,22 @@
-
 import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+
 import '../models/article_demande.dart';
 import 'auth_repository.dart';
+import 'http_client_provider.dart'; // adapte au nom réel de ton fichier
 
 class ArticleDemandeRepository {
   static const String baseUrl = '${AuthRepository.baseUrl}/api';
 
+  final http.Client _client;
+
+  ArticleDemandeRepository(this._client);
+
   // Récupérer les articles initiaux d'une demande.
   Future<List<ArticleDemande>> getArticles(int demandeId) async {
-    final response = await http.get(
+    final response = await _client.get(
       Uri.parse('$baseUrl/articles-demande/demande/$demandeId'),
     );
 
@@ -35,13 +41,11 @@ class ArticleDemandeRepository {
 // Provider du repository des articles.
 final articleDemandeRepositoryProvider =
 Provider<ArticleDemandeRepository>((ref) {
-  return ArticleDemandeRepository();
+  return ArticleDemandeRepository(ref.watch(httpClientProvider));
 });
 
 // Provider pour charger les articles d'une demande précise.
 final articlesDemandeProvider =
 FutureProvider.family<List<ArticleDemande>, int>((ref, demandeId) {
-  return ref
-      .watch(articleDemandeRepositoryProvider)
-      .getArticles(demandeId);
+  return ref.watch(articleDemandeRepositoryProvider).getArticles(demandeId);
 });

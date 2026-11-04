@@ -5,13 +5,19 @@ import 'package:http/http.dart' as http;
 
 import '../models/demande_aide.dart';
 import 'auth_repository.dart';
+import 'http_client_provider.dart';
 
 class DemandeAideRepository {
   static const String baseUrl = '${AuthRepository.baseUrl}/api';
+
+  final http.Client client;
+
+  DemandeAideRepository({required this.client});
+
   // Récupérer les demandes disponibles pour les dons.
   // Conditions : demande validée et collecte non terminée.
   Future<List<DemandeAide>> getDemandesDisponibles() async {
-    final response = await http.get(
+    final response = await client.get(
       Uri.parse('$baseUrl/demandes-aide/disponibles-pour-don'),
       headers: {
         'Accept': 'application/json',
@@ -45,7 +51,7 @@ class DemandeAideRepository {
 
   // Récupérer une demande par son identifiant.
   Future<DemandeAide> getDemandeById(int id) async {
-    final response = await http.get(
+    final response = await client.get(
       Uri.parse('$baseUrl/demandes-aide/$id'),
       headers: {
         'Accept': 'application/json',
@@ -73,7 +79,9 @@ class DemandeAideRepository {
 // Provider du repository des demandes.
 final demandeAideRepositoryProvider =
 Provider<DemandeAideRepository>((ref) {
-  return DemandeAideRepository();
+  return DemandeAideRepository(
+    client: ref.watch(httpClientProvider),
+  );
 });
 
 // Provider pour charger les demandes disponibles.

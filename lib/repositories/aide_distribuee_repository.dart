@@ -123,7 +123,7 @@ class AideDistribueeRepository {
     }).toList();
   }
 
-  void dispose() {
+ /* void dispose() {
     _client.close();
-  }
+  }*/
 }

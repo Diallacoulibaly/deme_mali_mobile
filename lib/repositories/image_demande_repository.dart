@@ -1,20 +1,22 @@
-
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/image_demande.dart';
 import 'auth_repository.dart';
-import 'package:flutter/foundation.dart';
-
+import 'http_client_provider.dart'; // adapte au nom réel de ton fichier
 
 class ImageDemandeRepository {
   static const String baseUrl = '${AuthRepository.baseUrl}/api';
 
-  // Récupérer les images associées à une demande.
+  final http.Client _client;
+
+  ImageDemandeRepository(this._client);
+
   Future<List<ImageDemande>> getImagesDemande(int demandeId) async {
-    final response = await http.get(
+    final response = await _client.get(
       Uri.parse('$baseUrl/images-demandes/demande/$demandeId'),
     );
 
@@ -29,9 +31,7 @@ class ImageDemandeRepository {
     final dynamic decoded = jsonDecode(response.body);
 
     if (decoded is! List) {
-      throw const FormatException(
-        'La réponse doit être une liste JSON.',
-      );
+      throw const FormatException('La réponse doit être une liste JSON.');
     }
 
     return decoded
@@ -40,9 +40,8 @@ class ImageDemandeRepository {
         .toList();
   }
 
-  // Récupérer une image par son identifiant.
   Future<ImageDemande> getImageById(int id) async {
-    final response = await http.get(
+    final response = await _client.get(
       Uri.parse('$baseUrl/images-demandes/$id'),
     );
 
@@ -58,24 +57,17 @@ class ImageDemandeRepository {
   }
 }
 
-// Provider du repository des images.
-final imageDemandeRepositoryProvider =
-Provider<ImageDemandeRepository>((ref) {
-  return ImageDemandeRepository();
+final imageDemandeRepositoryProvider = Provider<ImageDemandeRepository>((ref) {
+  return ImageDemandeRepository(ref.watch(httpClientProvider));
 });
 
-// Provider pour charger les images d'une demande.
+// Les autres providers restent identiques
 final imagesDemandeProvider =
 FutureProvider.family<List<ImageDemande>, int>((ref, demandeId) {
-  return ref
-      .watch(imageDemandeRepositoryProvider)
-      .getImagesDemande(demandeId);
+  return ref.watch(imageDemandeRepositoryProvider).getImagesDemande(demandeId);
 });
 
-// Provider pour charger une image par son identifiant.
 final imageDemandeDetailProvider =
 FutureProvider.family<ImageDemande, int>((ref, id) {
-  return ref
-      .watch(imageDemandeRepositoryProvider)
-      .getImageById(id);
+  return ref.watch(imageDemandeRepositoryProvider).getImageById(id);
 });
